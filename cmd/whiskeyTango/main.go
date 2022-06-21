@@ -302,6 +302,20 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) 
 		return nil, fmt.Errorf("Unable to unmarshal decrypted claims: %v", err)
 	}
 
+	// check the expiration
+	top, ok := result.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Unable to verify claims because they are not a struct at top level: %v", err)
+	}
+	exp2, ok := top["exp"].(float64)
+	if !ok {
+		return nil, fmt.Errorf("Cannot check exp date: %v", err)
+	}
+
+	if exp2 < float64(now) {
+		return nil, fmt.Errorf("Token is expired")
+	}
+
 	return result, nil
 }
 
