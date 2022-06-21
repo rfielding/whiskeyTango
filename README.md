@@ -17,7 +17,7 @@ Encrypted JWTs involve a complex specification in JOSE, that just compounds the 
 
 # Tokens
 
-Tokens are digitally signed slaims about a user.  This is an example of what is being digitally signed:
+Tokens are digitally signed claims about a user.  This is an example of what is being digitally signed:
 
 ```json
 {
