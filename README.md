@@ -15,4 +15,8 @@ This is a simplified web token format that has the property that you can't get a
 
 Encrypted JWTs involve a complex specification in JOSE, that just compounds the complexity problem associated with JWT hazards.  There are many situations where the CA has the signing key, and only clients allowed to decrypt the claims need to check the validity of those claims.  So, the public keys to verify a JWT can actually be secrets in that situation.
 
-The good part of JWT is the idea of a simple json object that is digitally signed.
+The good part of JWT is the idea of a simple json object that is digitally signed.  The existing JWT specification goes roughly like this:
+
+$$
+jwt = join(".", [B64UEncode(header), B64UEncode(body), B64UEncode(signature)]
+$$
