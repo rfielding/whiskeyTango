@@ -106,4 +106,6 @@ Most signature checks simply trust that the client is defending itself and check
 - require that HE be produced by the client
 - require that V be produce by the client, using VerifyRSA(v,Sig)
 - Xor(V,HE) = Xor(Xor(k,HE),HE) = k
-- k it a witness that the signature was checked, so we can decrypt claims.
+- k it a witness that the signature was checked, so we can decrypt claims. `claims = AESDecrypt(k, E)
+
+It is unusual to do a setup that requires a witness that verification actually happened.  But if you are going to have encrypted tokens, the tokens need verification, and the claims need a decrypt.  This just means that the RSA public key that kid leads to is not _entirely_ public.  It's public to those allowed to verify the token.
