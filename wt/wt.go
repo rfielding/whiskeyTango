@@ -238,7 +238,11 @@ func CreateToken(keys *JWKeys, kid string, exp int64, claimsObject interface{}) 
 	)
 
 	// Sign V
-	rpk := keys.KeyMap[kid].RSAPrivateKey
+	theKey, ok := keys.KeyMap[kid]
+	if !ok {
+		return "", fmt.Errorf("Unable to find kid %s", kid)
+	}
+	rpk := theKey.RSAPrivateKey
 	Sig := RSA(V, rpk.D, rpk.N)
 
 	// This token is kind of similar to a JWT in appearance.
@@ -274,7 +278,11 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) 
 		return nil, fmt.Errorf("Unable to decode signature bytes: %v", err)
 	}
 
-	rpk := keys.KeyMap[kid].RSAPublicKey
+	theKey, ok := keys.KeyMap[kid]
+	if !ok {
+		return "", fmt.Errorf("Unable to find kid %s", kid)
+	}
+	rpk := theKey.RSAPublicKey
 	// We need a hash of the ciphertext, as proof that we checked it
 	HE := new(big.Int).SetBytes(H(ciphertextWithNonce))
 
