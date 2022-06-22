@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"time"
@@ -52,5 +53,11 @@ func SmokeTest() {
 }
 
 func main() {
-	SmokeTest()
+	smokeTestFlag := flag.Bool("smokeTest", false, "run a simple smoke test")
+	makeCAFlag := flag.Bool("makeCA", false, "create a new CA")
+	issueToken := flag.Bool("issueToken", false, "issue a token")
+	flag.Parse()
+	if *smokeTestFlag || (!*makeCAFlag && !*issueToken) {
+		SmokeTest()
+	}
 }
