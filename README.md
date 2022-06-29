@@ -50,6 +50,8 @@ It needs to be digitally signed, because we will make critical security decision
 }
 ```
 
+> Note: a change has been made so that `e` is no longer a predictable number.  It is as private as `d` is.  It's just that `e` is distributed to those who are allowed to verify and decrypt.
+
 This way, if a token has that `kid` in its first part, we can use that semi-public key to decrypt the claims.  The way that the claims are encrypted, we have verified the signature of the signer; and that is the only way to get the claims.  Without the trust file, we have no idea what is in the token.
 
 ```

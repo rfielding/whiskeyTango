@@ -29,13 +29,14 @@ type JWKey struct {
 	N             string          `json:"n,omitempty"`
 	E             string          `json:"e,omitempty"`
 	K             string          `json:"k,omitempty"`          // comment this out if not CA?? TODO
-	RSAPublicKey  *rsa.PublicKey  `json:"rsaPublic,omitempty"`  // !!! Blank this before JWK serialization for client
-	RSAPrivateKey *rsa.PrivateKey `json:"rsaPrivate,omitempty"` // !!! Blank this before JWK serialization for client
+	Nint *big.Int `json:"-"`
+	Dint *big.Int `json:"-"`
+	Eint *big.Int `json:"-"`
 }
 
 func (key JWKey) Redact() JWKey {
 	k2 := key
-	k2.RSAPrivateKey = nil
+	k2.Dint = nil
 	k2.D = ""
 	k2.K = "" // I assume that it's private
 	return k2
@@ -70,7 +71,6 @@ func AsJson(v interface{}) string {
 
 func (key JWKey) AsJsonPrivate() string {
 	k2 := key.Redact()
-	k2.RSAPublicKey = nil // make it suitable for serialization
 	j, err := json.MarshalIndent(k2, "", "  ")
 	if err != nil {
 		log.Printf("Unable to marshal redacted JWKey: %v", err)
@@ -87,11 +87,42 @@ func NewRSAJWK(kid string) (JWKey, error) {
 	if err != nil {
 		return k, fmt.Errorf("Unable to generate RSA Keypair: %v", err)
 	}
-	k.N = base64.RawURLEncoding.EncodeToString(priv.N.Bytes())
-	k.D = base64.RawURLEncoding.EncodeToString(priv.D.Bytes())
-	k.E = base64.RawURLEncoding.EncodeToString(new(big.Int).SetInt64(int64(priv.E)).Bytes())
-	k.RSAPrivateKey = priv
-	k.RSAPublicKey = &rsa.PublicKey{N: priv.N, E: priv.E}
+
+	// We need phi to make E not deterministic
+	one := new(big.Int).SetInt64(1)
+	phi := new(big.Int).Mul(
+		new(big.Int).Sub(priv.Primes[0],one),
+		new(big.Int).Sub(priv.Primes[1],one),
+	)
+	k.Nint = priv.N
+
+	rD, err := rand.Int(rand.Reader,phi)
+	if err != nil {
+		return k, fmt.Errorf("Cannot generate random number to obfuscate D: %v", err)
+	}
+	k.Dint = new(big.Int).Add(
+		priv.D,
+		new(big.Int).Mul(
+			rD,
+			phi,			
+		),
+	)
+	k.D = base64.RawURLEncoding.EncodeToString(k.Dint.Bytes())
+
+	rE, err := rand.Int(rand.Reader,phi)
+	if err != nil {
+		return k, fmt.Errorf("Cannot generate random number to obfuscate E: %v", err)
+	}
+	k.Eint = new(big.Int).Add(
+		new(big.Int).SetInt64(int64(priv.E)),
+		new(big.Int).Mul(
+			rE,
+			phi,
+		),
+	)
+	k.E = base64.RawURLEncoding.EncodeToString(k.Eint.Bytes())
+
+	k.N = base64.RawURLEncoding.EncodeToString(k.Nint.Bytes())
 	return k, nil
 }
 
@@ -103,22 +134,22 @@ func ParseJWK(b []byte) (*JWKeys, error) {
 	keys.KeyMap = make(map[string]JWKey)
 	for _, v := range keys.Keys {
 		// Set the RSAPublicKey field if it's blank
-		if v.Kty == "RSA" && len(v.N) > 0 && len(v.E) > 0 && v.RSAPublicKey == nil {
+		if v.Kty == "RSA" && len(v.N) > 0 && len(v.E) > 0 {
 			nn, err := base64.RawURLEncoding.DecodeString(v.N)
 			if err != nil {
 				return nil, fmt.Errorf("Cannot parse RSA N: %v", err)
+			}
+			nd, err := base64.RawURLEncoding.DecodeString(v.D)
+			if err != nil {
+				return nil, fmt.Errorf("Cannot parse RSA D: %v", err)
 			}
 			ne, err := base64.RawURLEncoding.DecodeString(v.E)
 			if err != nil {
 				return nil, fmt.Errorf("Cannot parse RSA E: %v", err)
 			}
-			N := new(big.Int).SetBytes(nn)
-			E := new(big.Int).SetBytes(ne)
-			// A proper JWK trust for clients may only set n,e
-			v.RSAPublicKey = &rsa.PublicKey{
-				N: N,
-				E: int(E.Int64()),
-			}
+			v.Nint = new(big.Int).SetBytes(nn)
+			v.Dint = new(big.Int).SetBytes(nd)
+			v.Eint= new(big.Int).SetBytes(ne)
 		}
 		keys.KeyMap[v.Kid] = v
 	}
@@ -242,8 +273,7 @@ func CreateToken(keys *JWKeys, kid string, exp int64, claimsObject interface{}) 
 	if !ok {
 		return "", fmt.Errorf("Unable to find kid %s", kid)
 	}
-	rpk := theKey.RSAPrivateKey
-	Sig := RSA(V, rpk.D, rpk.N)
+	Sig := RSA(V, theKey.Dint, theKey.Nint)
 
 	// This token is kind of similar to a JWT in appearance.
 	return fmt.Sprintf(
@@ -282,15 +312,14 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) 
 	if !ok {
 		return "", fmt.Errorf("Unable to find kid %s", kid)
 	}
-	rpk := theKey.RSAPublicKey
 	// We need a hash of the ciphertext, as proof that we checked it
 	HE := new(big.Int).SetBytes(H(ciphertextWithNonce))
 
 	// We need the verified signature as proof that we checked it
 	V := RSA(
 		new(big.Int).SetBytes(SigBytes),
-		new(big.Int).SetInt64(int64(rpk.E)),
-		rpk.N,
+		theKey.Eint,
+		theKey.Nint,
 	)
 
 	// Extract the key that proves that we checked the signature
