@@ -100,12 +100,15 @@ func NewRSAJWK(kid string) (JWKey, error) {
 	if err != nil {
 		return k, fmt.Errorf("Cannot generate random number to obfuscate D: %v", err)
 	}
-	k.Dint = new(big.Int).Add(
-		priv.D,
-		new(big.Int).Mul(
-			rD,
-			phi,			
+	k.Dint = new(big.Int).Mod(
+		new(big.Int).Add(
+			priv.D,
+			new(big.Int).Mul(
+				rD,
+				phi,			
+			),
 		),
+		phi,
 	)
 	k.D = base64.RawURLEncoding.EncodeToString(k.Dint.Bytes())
 
@@ -114,11 +117,14 @@ func NewRSAJWK(kid string) (JWKey, error) {
 		return k, fmt.Errorf("Cannot generate random number to obfuscate E: %v", err)
 	}
 	k.Eint = new(big.Int).Add(
-		new(big.Int).SetInt64(int64(priv.E)),
-		new(big.Int).Mul(
-			rE,
-			phi,
+		new(big.Int).Add(
+			new(big.Int).SetInt64(int64(priv.E)),
+			new(big.Int).Mul(
+				rE,
+				phi,
+			),
 		),
+		phi,
 	)
 	k.E = base64.RawURLEncoding.EncodeToString(k.Eint.Bytes())
 
