@@ -80,10 +80,11 @@ func (key JWKey) AsJsonPrivate() string {
 
 // Generate a new RSA keypair for a kid - CA will have many of these
 func NewRSAJWK(kid string) (JWKey, error) {
+	sz := 2 * 1024
 	k := JWKey{}
 	k.Kty = "RSA"
 	k.Kid = kid
-	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	priv, err := rsa.GenerateKey(rand.Reader, sz)
 	if err != nil {
 		return k, fmt.Errorf("Unable to generate RSA Keypair: %v", err)
 	}
@@ -94,40 +95,27 @@ func NewRSAJWK(kid string) (JWKey, error) {
 		new(big.Int).Sub(priv.Primes[0], one),
 		new(big.Int).Sub(priv.Primes[1], one),
 	)
-	k.Nint = priv.N
+	maxModPhi := new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(sz)), nil)
 
-	randPrimes, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return k, fmt.Errorf("Unable to generate RSA Keypair: %v", err)
+	// I think some D have no inverse mod phi, but it only takes a few tries to find one randomly
+	for {
+		D, err := rand.Int(rand.Reader, maxModPhi)
+		if err != nil {
+			return k, fmt.Errorf("Unable to generate random D: %v", err)
+		}
+		k.Dint = new(big.Int).Mod(D, phi)
+		k.D = base64.RawURLEncoding.EncodeToString(k.Dint.Bytes())
+
+		k.Eint = new(big.Int).ModInverse(k.Dint, phi)
+		if k.Eint == nil {
+			continue
+		}
+		k.E = base64.RawURLEncoding.EncodeToString(k.Eint.Bytes())
+
+		k.Nint = priv.N
+		k.N = base64.RawURLEncoding.EncodeToString(k.Nint.Bytes())
+		break
 	}
-	rD := new(big.Int).SetInt64(1) //randPrimes.Primes[0]
-	rE := randPrimes.Primes[1]
-
-	k.Dint = new(big.Int).Mod(
-		new(big.Int).Add(
-			priv.D,
-			new(big.Int).Mul(
-				rD,
-				phi,
-			),
-		),
-		phi,
-	)
-	k.D = base64.RawURLEncoding.EncodeToString(k.Dint.Bytes())
-
-	k.Eint = new(big.Int).Add(
-		new(big.Int).Add(
-			new(big.Int).SetInt64(int64(priv.E)),
-			new(big.Int).Mul(
-				rE,
-				phi,
-			),
-		),
-		phi,
-	)
-	k.E = base64.RawURLEncoding.EncodeToString(k.Eint.Bytes())
-
-	k.N = base64.RawURLEncoding.EncodeToString(k.Nint.Bytes())
 	return k, nil
 }
 
