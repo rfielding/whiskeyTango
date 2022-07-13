@@ -106,25 +106,28 @@ func NewRSAJWK(kid string) (JWKey, error) {
 		}
 		k.Dint = new(big.Int).Mod(D, phi)
 		k.D = base64.RawURLEncoding.EncodeToString(k.Dint.Bytes())
-
-		// d isn't zero and less than phi
 		if k.Dint == nil {
 			continue
 		}
-		// d and phi are coprime
-		if new(big.Int).GCD(nil, nil, k.Dint, phi).Cmp(one) != 0 {
-			continue
-		}
+		/*
+			// d and phi are coprime
+			if new(big.Int).GCD(nil, nil, k.Dint, phi).Cmp(one) != 0 {
+				continue
+			}
+		*/
 
 		k.Eint = new(big.Int).ModInverse(k.Dint, phi)
-		// e isn't zero and less than phi
 		if k.Eint == nil {
 			continue
 		}
-		// e and phi are coprime
-		if new(big.Int).GCD(nil, nil, k.Eint, phi).Cmp(one) != 0 {
-			continue
-		}
+
+		/*
+			// e isn't zero and less than phi
+			// e and phi are coprime
+			if new(big.Int).GCD(nil, nil, k.Eint, phi).Cmp(one) != 0 {
+				continue
+			}
+		*/
 		k.E = base64.RawURLEncoding.EncodeToString(k.Eint.Bytes())
 
 		k.Nint = priv.N
