@@ -171,3 +171,19 @@ It is unusual to do a setup that requires a witness that verification actually h
 
 2022/06/21 15:42:20 validate claims: { "exp": 1655841740, "groups": { "age": [ "adult" ], "awards": [ "cherryblossom-go-tournament", "best-dad" ], "email": [ "rob.fielding@gmail.com", "rrr00bb@yahoo.com" ] }, "kid": "usa:1234:1" }
 ```
+
+Example test of CLI:
+
+Create a signing key charles:
+
+```
+go run cmd/whiskeyTango/main.go -ca sign.json -create -kid charles
+```
+
+Using a signing or verify json file (sign.json will do, if `d` is stripped to make it private, that is what you want):
+
+```
+echo '{"values":{"age":["adult"]}}' | go run cmd/whiskeyTango/main.go -ca sign.json -sign -kid charles -minutes 20 | go run cmd/whiskeyTango/main.go -ca sign.json -verify
+```
+
+In this case, we generated a new `wt` token on the fly.  It expires in 20 minutes.  It is verified.  There is no way to extract the claims without doing verification as a prerequisite.
