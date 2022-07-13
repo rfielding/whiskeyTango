@@ -100,7 +100,7 @@ func NewRSAJWK(kid string) (JWKey, error) {
 	if err != nil {
 		return k, fmt.Errorf("Unable to generate RSA Keypair: %v", err)
 	}
-	rD := randPrimes.Primes[0]
+	rD := new(big.Int).SetInt64(1) //randPrimes.Primes[0]
 	rE := randPrimes.Primes[1]
 
 	k.Dint = new(big.Int).Mod(
