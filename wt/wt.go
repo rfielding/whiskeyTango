@@ -22,13 +22,13 @@ type JWKey struct {
 	Kid string `json:"kid,omitempty"`
 	Alg string `json:"alg,omitempty"`
 
-	Crv           string          `json:"crv,omitempty"`
-	X             string          `json:"x,omitempty"`
-	Y             string          `json:"y,omitempty"`
-	D             string          `json:"d,omitempty"` // comment this out if not CA
-	N             string          `json:"n,omitempty"`
-	E             string          `json:"e,omitempty"`
-	K             string          `json:"k,omitempty"`          // comment this out if not CA?? TODO
+	Crv  string   `json:"crv,omitempty"`
+	X    string   `json:"x,omitempty"`
+	Y    string   `json:"y,omitempty"`
+	D    string   `json:"d,omitempty"` // comment this out if not CA
+	N    string   `json:"n,omitempty"`
+	E    string   `json:"e,omitempty"`
+	K    string   `json:"k,omitempty"` // comment this out if not CA?? TODO
 	Nint *big.Int `json:"-"`
 	Dint *big.Int `json:"-"`
 	Eint *big.Int `json:"-"`
@@ -91,31 +91,30 @@ func NewRSAJWK(kid string) (JWKey, error) {
 	// We need phi to make E not deterministic
 	one := new(big.Int).SetInt64(1)
 	phi := new(big.Int).Mul(
-		new(big.Int).Sub(priv.Primes[0],one),
-		new(big.Int).Sub(priv.Primes[1],one),
+		new(big.Int).Sub(priv.Primes[0], one),
+		new(big.Int).Sub(priv.Primes[1], one),
 	)
 	k.Nint = priv.N
 
-	rD, err := rand.Int(rand.Reader,phi)
+	randPrimes, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return k, fmt.Errorf("Cannot generate random number to obfuscate D: %v", err)
+		return k, fmt.Errorf("Unable to generate RSA Keypair: %v", err)
 	}
+	rD := randPrimes.Primes[0]
+	rE := randPrimes.Primes[1]
+
 	k.Dint = new(big.Int).Mod(
 		new(big.Int).Add(
 			priv.D,
 			new(big.Int).Mul(
 				rD,
-				phi,			
+				phi,
 			),
 		),
 		phi,
 	)
 	k.D = base64.RawURLEncoding.EncodeToString(k.Dint.Bytes())
 
-	rE, err := rand.Int(rand.Reader,phi)
-	if err != nil {
-		return k, fmt.Errorf("Cannot generate random number to obfuscate E: %v", err)
-	}
 	k.Eint = new(big.Int).Add(
 		new(big.Int).Add(
 			new(big.Int).SetInt64(int64(priv.E)),
@@ -155,7 +154,7 @@ func ParseJWK(b []byte) (*JWKeys, error) {
 			}
 			v.Nint = new(big.Int).SetBytes(nn)
 			v.Dint = new(big.Int).SetBytes(nd)
-			v.Eint= new(big.Int).SetBytes(ne)
+			v.Eint = new(big.Int).SetBytes(ne)
 		}
 		keys.KeyMap[v.Kid] = v
 	}

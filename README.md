@@ -50,7 +50,7 @@ It needs to be digitally signed, because we will make critical security decision
 }
 ```
 
-> Note: a change has been made so that `e` is no longer a predictable number.  It is as private as `d` is.  It's just that `e` is distributed to those who are allowed to verify and decrypt.
+> Note: a change has been made so that `e` is no longer a predictable number.  It is as private as `d` is.  It's just that `e` is distributed to those who are allowed to verify and decrypt.  Note that I just make a disposable new RSA key, just to get a pair of large random prime numbers.  I do this so that it's not feasible to factor out the random number (that might be easily factored) to recover phi!  Allowing attacker to recover phi would mean leaking the private key in practice.
 
 This way, if a token has that `kid` in its first part, we can use that semi-public key to decrypt the claims.  The way that the claims are encrypted, we have verified the signature of the signer; and that is the only way to get the claims.  Without the trust file, we have no idea what is in the token.
 
