@@ -15,9 +15,31 @@ This is a simplified web token format that has the property that you can't get a
 
 Encrypted JWTs involve a complex specification in JOSE, that just compounds the complexity problem associated with JWT hazards.  There are many situations where the CA has the signing key, and only clients allowed to decrypt the claims need to check the validity of those claims.  So, the public keys to verify a JWT can actually be secrets in that situation.
 
+
+## Token flow
+
+Tokens are digitally signed claims about a user.  This is an example of what is being digitally signed.  The signed information flows between actors in a system:
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant Signer
+  participant MiddleMan
+  participant Verifier
+  Signer->>Signer: generate keypair in signer.jwk with unique kid trent:v1
+  Signer->>Verifier: securely send trusted.jwk
+  User->>Signer: signer suggest claims to be signed
+  Signer->>User: user-token-0
+  User->>MiddleMan: cannot read user-token-0 at all, because it doesn't trust trent:v1
+  MiddleMam->>Verifier: user-token-0 has kid trent:v1, decodes claims
+  Verifier->>Verifier: make decision about user based on claims from user-token-0
+```
+
 # Tokens
 
-Tokens are digitally signed claims about a user.  This is an example of what is being digitally signed:
+Claims in a token should have an expiration date. They typically are a set of groups,
+so that permission can be calculated with them.  Sometimes, they are basic things
+such as a user's primary key, where groups still need a lookup somewhere else.
 
 ```json
 {
@@ -154,22 +176,6 @@ Most signature checks simply trust that the client is defending itself and check
 
 It is unusual to do a setup that requires a witness that verification actually happened.  But if you are going to have encrypted tokens, the tokens need verification, and the claims need a decrypt.  This just means that the RSA public key that kid leads to is not _entirely_ public.  It's public to those allowed to verify the token.
 
-## Token flow
-
-```mermaid
-sequenceDiagram
-  participant User
-  participant Signer
-  participant MiddleMan
-  participant Verifier
-  Signer->>Signer: generate keypair in signer.jwk with unique kid trent:v1
-  Signer->>Verifieer: securely send trusted.jwk
-  User->>Signer: signer suggest claims to be signed
-  Signer->>User: user-token-0
-  User->>MiddleMan: cannot read user-token-0 at all, because it doesn't trust trent:v1
-  MiddleMam->>Verifier: user-token-0 has kid trent:v1, decodes claims
-  Verifier->>Verifier: make decision about user based on claims from user-token-0
-```
 
 ## Example test of CLI:
 
