@@ -33,6 +33,7 @@ sequenceDiagram
   User->>MiddleMan: cannot read user-token-0 at all, because it doesn't verify trent:v1
   MiddleMan->>Verifier: user-token-0 is passed on, signed by unknown kid
   Verifier->>Verifier: user-token-0 has kid trent:v1, decodes claims
+  Verifier->>Verifier: verifier is expected to honor the expiration date
   Verifier->>Verifier: make decision about user based on claims from user-token-0
 ```
 
