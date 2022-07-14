@@ -30,7 +30,7 @@ sequenceDiagram
   Signer->>Verifier: securely send trusted.jwk
   User->>Signer: signer suggest claims to be signed
   Signer->>User: user-token-0
-  User->>MiddleMan: cannot read user-token-0 at all, because it doesn't trust trent:v1
+  User->>MiddleMan: cannot read user-token-0 at all, because it doesn't verify trent:v1
   MiddleMan->>Verifier: user-token-0 has kid trent:v1, decodes claims
   Verifier->>Verifier: make decision about user based on claims from user-token-0
 ```
