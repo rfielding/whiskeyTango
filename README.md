@@ -180,27 +180,49 @@ Most signature checks simply trust that the client is defending itself and check
 It is unusual to do a setup that requires a witness that verification actually happened.  But if you are going to have encrypted tokens, the tokens need verification, and the claims need a decrypt.  This just means that the RSA public key that kid leads to is not _entirely_ public.  It's public to those allowed to verify the token.
 
 
-## Example test of CLI:
+## Example output
 
-Make the binary to shorten commands
+This is an example of using the CLI from a bash shell.
+Once the binary is made, and we cleaned out state from previous test runs,
+we begin to use the Cli:
 
+```bash
+
+#!/bin/bash
+
+(
+cd `dirname $0`
+
+echo --- compile binary
+go build -o wt main.go
+
+echo --- clean up
+rm *.json
+
+echo --- make ca
+./wt -ca signer.json -kid rfielding-1 -create
+
+echo --- trust signer rfielding-1
+./wt -ca signer.json -kid rfielding-1 -trust trusted.json
+cat trusted.json
+
+echo --- sign token
+echo '{"age":["adult"]}' | ./wt -ca signer.json -kid rfielding-1 -sign > token.wt
+cat token.wt
+
+echo --- verify token
+cat token.wt | ./wt -ca trusted.json -verify
+)
 ```
-cd cmd/whiskeyTango
-go build -o whiskeyTango main.go
-```
 
-Create a signing key charles:
+- `wt -ca signer.json -kid rfielding-1 -create` creates a fresh RSA keypair named rfielding-1.  The `signer.json` file is private to the signer.
 
-```
-./whiskeyTango -ca sign.json -create -kid charles
-```
+- `wt -ca signer.json -kid rfielding-1 -trust trusted.json` says that the ca should export `rfielding-1` into the file `trusted.json`, but redact the signer's private key while doing so. This entry can only be used to verify tokens.
 
-Using a signing or verify json file (sign.json will do, if `d` is stripped to make it private, that is what you want):
+- `cat claims.json | wt -ca signer.json -kid rfielding-1 -sign > token.wt` means that whatever claims are passed in on stdin should be signed by signer.  Of course the signer should not just automatically do this!  Signer should read the claims and verify that they are true.  Claims will be things that need to be verified, such as who the user is, his attributes such as age, etc.  Such claims may come from, or be verified against a database of known attributes.
 
-```
-echo '{"values":{"age":["adult"]}}' | ./whiskeyTango -ca sign.json -sign -kid charles -minutes 20 > token.json
+- Once this token is given back to the user, the user isn't necessarily allowed to decode it.  Some attributes might be derogatory, such as failed drug tests.
 
-echo token.json |  ./whiskeyTango -ca sign.json -verify
-```
+- `cat token.wt | wt -ca trusted.json -verify` extracts the claims about the user.  The signer knows the claims, and should have verified that they were true.  The user may not be able to decode these claims.  But since we were granted the RSA (less-than) public key, we can decode what these claims are.
 
-In this case, we generated a new `wt` token on the fly.  It expires in 20 minutes.  It is verified.  There is no way to extract the claims without doing verification as a prerequisite.
+
