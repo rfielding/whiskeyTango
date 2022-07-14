@@ -36,6 +36,10 @@ sequenceDiagram
   Verifier->>Verifier: make decision about user based on claims from user-token-0
 ```
 
+> Note: it is possible to use normal RSA with completely public keys.  With completely public keys, it may be possible for those not explicitly given permission to verify signatures to do so.  This may be fine for most applications.  But a goal is to support "signcrypted" tokens.  The signer may only give out public keys to verify tokens to specific verifiers.  This allows for possibilities such as derogatory secrets in tokens that verifiers need to know, but their owners do no. It also protects tokens from snooped by middle-men.
+
+> TODO: it is possible to embed public keys into the signed tokens, so that verifiers can challenge senders for proof of ownership of the token.  Normally tokens rely on expiration dates to limit the "blast radius" of leaks.
+
 # Tokens
 
 Claims in a token should have an expiration date. They typically are a set of groups,
