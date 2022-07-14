@@ -47,17 +47,21 @@ type JWKeys struct {
 	KeyMap map[string]JWKey `json:"-"`
 }
 
-// Allocate a new RSA key for kid
-func (keys *JWKeys) AddRSA(kid string) error {
-	jwk, err := NewRSAJWK(kid)
-	if err != nil {
-		return fmt.Errorf("Unable to add in JWK RSA kid %s to JWKeys: %v", kid, err)
-	}
-	keys.Keys = append(keys.Keys, jwk)
+func (keys *JWKeys) Insert(kid string, k JWKey) {
+	keys.Keys = append(keys.Keys, k)
 	if keys.KeyMap == nil {
 		keys.KeyMap = make(map[string]JWKey)
 	}
-	keys.KeyMap[kid] = jwk
+	keys.KeyMap[kid] = k
+}
+
+// Allocate a new RSA key for kid
+func (keys *JWKeys) AddRSA(kid string) error {
+	k, err := NewRSAJWK(kid)
+	if err != nil {
+		return fmt.Errorf("Unable to add in JWK RSA kid %s to JWKeys: %v", kid, err)
+	}
+	keys.Insert(kid, k)
 	return nil
 }
 

@@ -145,6 +145,7 @@ func SmokeTest() {
 
 func main() {
 	ca := flag.String("ca", "", "CA signing json jwk")
+	trust := flag.String("trust", "", "trust a CA key")
 	create := flag.Bool("create", false, "Create an item")
 	sign := flag.Bool("sign", false, "Sign a token")
 	verify := flag.Bool("verify", false, "Verify a token")
@@ -154,6 +155,13 @@ func main() {
 
 	if len(*ca) > 0 {
 		keys := LoadCA(*ca)
+		if len(*trust) > 0 && len(*kid) > 0 {
+			trusted := LoadCA(*trust)
+			k := keys.KeyMap[*kid].Redact()
+			trusted.Insert(*kid,k)
+			StoreCA(*trust, trusted)
+			return
+		}
 		if *create && len(*kid) > 0 {
 			// ca [fname] create kid [kid]
 			keys.AddRSA(*kid)
