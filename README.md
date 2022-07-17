@@ -156,12 +156,12 @@ flowchart TB
   XOR[[XOR]]
   Sign[[Sign]]
   n-- modulus -->Sign
+  d-- use private signing key -->Sign
   Sha256-- Sha256 ciphertextunderk -->HE
   HE-- Sign hashed ciphertext  -->XOR
   k-- mix in key to recover -->XOR
   XOR-- XOR HE k -->V
   V-- XOR with HE to recover k -->Sign
-  d-- use private signing key -->Sign
   Sign-- V^d -->sig
   sig-- append signature into token -->APPENDB64WithDots
 ```
