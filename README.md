@@ -202,7 +202,7 @@ kid = ArbitraryNameForKeypair()
 (e,d) = RSAKeypair()
 
 # the verify is "public" to those that are _allowed_ to decrypt the tokens.
-# that means that v is not entirely public.  s is secret to the CA only.
+# that means that `(n,e)` is not entirely public.  `d` is secret to the CA only.
 ```
 
 A client will _trust_ a `kid` by mapping from `kid` to `e` in a JWK
