@@ -93,9 +93,13 @@ The good part of JWT is the idea of a simple json object that is digitally signe
 
 ```mermaid
 flowchart LR
-  k--- AESGCM ---ciphertextunderk
-  plaintext--- AESGCM ---ciphertextunderk
+  k[(k)]
+  plaintext[(plaintext)]
+  ciphertextunderk[(ciphertextunderk)]
+  k--|AESGCM|-->ciphertextunderk
+  plaintext--|AESGCM|-->ciphertextunderk
 ```
+
 var header // a json chunk that includes alg, maybe kid, etc.
 var claims // A json chunk that includes exp, issuer, etc.
 var signature // a signatuer over header and claims, ensure no modifications.
