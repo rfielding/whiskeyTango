@@ -15,6 +15,29 @@ This is a simplified web token format that has the property that you can't get a
 
 Encrypted JWTs involve a complex specification in JOSE, that just compounds the complexity problem associated with JWT hazards.  There are many situations where the CA has the signing key, and only clients allowed to decrypt the claims need to check the validity of those claims.  So, the public keys to verify a JWT can actually be secrets in that situation.
 
+## Motivation
+
+How would you feel about an encryption cipher that relied on client implementations to not fail?  Imagine such a cipher: The encryptor of the message does everything according to specification, and does not leak the secret key `k` for `ciphrtextunderk` that will decrypt to `plaintext`.  Yet, somebody implemented a decrypt cipher that manages to extract `plaintext` without knowledge of `k.
+
+We tolerate exactly this situation with digital signatures.  And it is completely unnecessary. In the hands of programmers that are just trying to get work done, this is very hazardous.  If a way is found to extract `plaintext` without bothering with cryptography, that is exactly what they will do.  We tolerate constructions like this for signing:
+
+```
+signedplaintext = {plaintext, Sign(Hash(plaintext))}
+
+plaintext = signedplaintext[0]
+
+verified = (Hash(plaintext) == Verify(signedplaintext[1]))
+```
+
+If we didn't have the keys to perform verification, we can simply lie and claim that we verified `plaintext`.  This is similar to being able to extract `plaintext` from a cipher and lie about getting the information by decrypting it.  This problem is caused by leaking the plaintext before verification begins.  You should get no information without a verification.
+
+The idea is to use the signature not to produce a hash of the plaintext for a comparison; but to use the signature to produce a witness that the ciphertext has not been modified.  And only that witness to following protocol can give us `plaintext`.
+
+What is important is that we _do_ _not_ rely on a correct client.  An incorrect client verification will simply fail to read what has been signed.  We need this behavior out of an encryption cipher; and signatures should work the same way.  This prevents us from making critical decisions based on data that is supposed to have been proven genuine. 
+
+
+
+
 
 ## Token flow
 
