@@ -127,7 +127,7 @@ flowchart TB
   e-- . -->Signer
   n-- . -->Verifier
   e-- . -->Verifier
-  k-- . ..>Verifier
+  k-- . -->Verifier
 ```
 
 Note that in RSA, the public key is `(n,e)`, and the private key is `(n,d)`.  The signer has everything in `(n,d,e)`.
