@@ -132,9 +132,9 @@ flowchart TB
   e-- . -->Verifier
 ```
 
-Note that in RSA, the public key is `(n,e)`, and the private key is `(n,d)`.  The signer has everything in `(n,d,e)`.
+Note that in RSA, the public key is `(n,e)`, and the private key is `(n,d)`.  The signer has everything in `(n,d,e)`. The `kid` is just used to identify a unique `(n,d,e)` tuple.
 
-### Generate A Token
+### CA signs a A Token
 
 We want a foolproof way of checking, such that if the client can even manage to get the plaintext, we are assured that the protocol was followed.  The only problem we have that we can't solve is verifying that the client actually checked an expiration date on a token.  But we can force the data to stay encrypted without a signature check, by forcing a signature check to produce a witness to decrypt the data.
 
