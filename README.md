@@ -150,12 +150,12 @@ flowchart TB
   ciphertextunderk-- Sha256 ciphertextunderk -->Sha256
   Sha256-- proof of the hash of encrypted data -->HE
   Sign[[Sign]]
-  trustlookup[[trust lookup]]
-  kid-- Find RSA n,e -->trustlookup
-  trustlookup-- found trusted key -->e
   n-- modulus -->Sign
   e-- public key -->Sign
   sig-- unsign signature -->Sign
+  trustlookup[[trust lookup]]
+  kid-- Find RSA n,e -->trustlookup
+  trustlookup-- found trusted key -->e
   Sign-- sig^e -->V
   XOR[[XOR]]
   V-- XOR -->XOR
