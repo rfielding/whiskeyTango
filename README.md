@@ -205,7 +205,7 @@ flowchart TB
   k-- mix in key to recover -->XOR
   XOR-- XOR HE k -->V
   V-- XOR with HE to recover k -->Sign
-  Sign-- V^d -->sig
+  Sign-- V^d mod n -->sig
   sig-- append signature into token -->APPENDB64WithDots
 ```
 
@@ -224,7 +224,7 @@ flowchart TB
   kid-- Find RSA n,e -->trustlookup
   trustlookup-- found e of trusted key -->e
   trustlookup-- found n of trusted key -->n
-  Verify-- sig^e -->V
+  Verify-- sig^e mod n -->V
   XOR[[XOR]]
   V-- XOR -->XOR
   HE-- XOR -->XOR
