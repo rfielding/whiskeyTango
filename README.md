@@ -120,6 +120,14 @@ flowchart TB
   GenerateRSA-- modulus -->n
   GenerateRSA-- signing key s -->d
   GenerateRSA-- verification key v -->e
+  GenerateRSA-- assign an arbitrary key id -->kid
+  Verifier[[Verifier Trust Store]]
+  n-- . -->Signer
+  d-- . -->Signer
+  e-- . -->Signer
+  n-- . -->Verifier
+  e-- . -->Verifier
+  k-- . ..>Verifier
 ```
 
 Note that in RSA, the public key is `(n,e)`, and the private key is `(n,d)`.  The signer has everything in `(n,d,e)`.
