@@ -106,10 +106,10 @@ flowchart TB
   XOR[[XOR]]
   Sign[[Sign]]
   Sha256-- HE -->HE
-  HE-- Sign hashed ciphertext  -->Sign
-  Sign-- mix in signature -->XOR
-  k-- key to recover -->XOR
-  XOR-- signature to unwrap -->Sig
+  HE-- Sign hashed ciphertext  -->XOR
+  k-- mix in key to recover -->XOR
+  XOR-- sign xored data with RSA d -->Sign
+  Sign-- signature to send -->Sig
   Sig-- append signature into token -->APPENDB64WithDots
 ```
 
