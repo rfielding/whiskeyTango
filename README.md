@@ -183,6 +183,8 @@ We want a foolproof way of checking, such that if the client can even manage to 
 
 > The RSA keypair (s,v) can also be called (e,d) for "encrypt" and "decrypt", and here I will use the RSA names for them
 
+> Note that this is almost the same thing as just verifying the hash of the ciphertext.
+But we can't use `HE = k` for this purpose, because you can calculate `HE` without actually verifying the signature. An `XOR` with `k` prevents skipping the signature check, as this signature check generates a witness rather than relying on an honest result of a comparison.
 
 ```mermaid
 flowchart TB
