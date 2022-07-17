@@ -42,6 +42,8 @@ An interesting side-effect of doing this is that we can look at schemes like RSA
 
 Because of this, we could weakly handle this by following common RSA usage that makes `e` a globally well-known constant. But it may be possible to deduce the public key `n` from multiple instances of tokens.  So it would be safer to also make `e` just as secret as `d` is.  Here we are taking advantage of the symmetric nature of raw RSA.
 
+> Note that this has nothing to do with using the same key for sign and encrypt, when RSA is used in the scheme where `e` is forced to be public.  The point of making `e` as secret as `d` is to avoid exactly that well-known problem.  Because `e` and `d` commute, the RSA key can't be used for both signing and encryption.  But that's only when the RSA key `e` is well known that this issue arises.
+
 
 ## Token flow
 
