@@ -35,6 +35,20 @@ If we didn't have the keys to perform verification, we can simply lie and claim 
 The idea is to use the signature not to produce a hash of the plaintext for a comparison; but to use the signature to produce a witness that the ciphertext has not been modified.  And only that witness to following protocol can give us `plaintext`.
 
 What is important is that we _do_ _not_ rely on a correct client.  An incorrect client verification will simply fail to read what has been signed.  We need this behavior out of an encryption cipher; and signatures should work the same way.  This prevents us from making critical decisions based on data that is supposed to have been proven genuine. 
+```
+# a witness is a random value we want as proof
+ciphertext = encrypt(witness, plaintext)
+signedciphertext = {ciphertext, sig = (Sign(Hash(ciphertext) xor k))}
+
+ciphertext = signedciphertext[0]
+
+witness = Hash(ciphertext) xor Verify(sig)
+
+plaintext = decrypt(witness, ciphertext) 
+```
+
+So, getting your hands on the plaintext is proof that you followed the signature verification protocol.  If you think about it, the only motivation for giving the user the plaintext and the signature, is so that they can skip the verification step if they wish to(!).
+
 An interesting side-effect of doing this is that we can look at schemes like RSA in a new way.  Instead of thinking of strictly private, and totally public keys; we can think of it as an _assymetric_ cipher, and leave it up to the user to make one of the keys public.  If one key `(n,d)` is reserved for the signer, and the other key is reserved for the verifier and signer to have `(n,e)`, then it is possible that signing and verification are only possible for those given the keys to act in those roles.  That would admit situations where the bearer of the token, nor middle-men passing the tokens around can decrypt them.  Therefore, tokens can have secrets sent from signer to verifier.  This could be derogatory information about a bearer, or passwords for resources that the bearer should not be given.
 
 - bearer asks signer for a token.  But signer must mark bearer ineligible for certain uses that bearer is unaware of.  But the verifier is allowed to know.
