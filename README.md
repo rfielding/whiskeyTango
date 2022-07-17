@@ -217,7 +217,7 @@ flowchart TB
 flowchart TB
   Sha256[[Sha256]]
   ciphertextunderk-- Sha256 ciphertextunderk -->Sha256
-  Sha256-- proof of the hash of encrypted data -->HE
+  Sha256-- Sha256 ciphertextunderk -->HE
   Verify[[Verify]]
   n-- modulus -->Verify
   e-- public key -->Verify
@@ -228,13 +228,13 @@ flowchart TB
   trustlookup-- found n of trusted key -->n
   Verify-- sig^e mod n -->V
   XOR[[XOR]]
-  V-- XOR -->XOR
-  HE-- XOR -->XOR
-  XOR-- recover witness -->k
+  V-- witness that we verified signature -->XOR
+  HE-- witness that we hashed the ciphertext -->XOR
+  XOR-- witness to following protocol -->k
   AESGCM[[AESGCM]]
   ciphertextunderk-- claims to recover -->AESGCM  
-  k-- witness that we followed protocol -->AESGCM  
-  AESGCM-- recovered claims -->claims 
+  k-- witness decrypts plaintext claims -->AESGCM  
+  AESGCM-- recovered claims -->plaintext
 ```
 
 A CA is setup with a key:
