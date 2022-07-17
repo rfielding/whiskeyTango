@@ -110,6 +110,8 @@ This is a very common pattern in cryptograpy, to give the plaintext and a signed
 
 ## Avoid signatures that reveal plaintext before verification
 
+### Generate A Token
+
 We want a foolproof way of checking, such that if the client can even manage to get the plaintext, we are assured that the protocol was followed.  The only problem we have that we can't solve is verifying that the client actually checked an expiration date on a token.  But we can force the data to stay encrypted without a signature check, by forcing a signature check to produce a witness to decrypt the data.
 
 > The RSA keypair (s,v) can also be called (e,d) for "encrypt" and "decrypt", and here I will use the RSA names for them
@@ -135,8 +137,20 @@ flowchart TB
   XOR-- XOR HE k -->V
   V-- XOR with HE to recover k -->Sign
   d-- use private signing key -->Sign
-  Sign-- V^d -->Sig
-  Sig-- append signature into token -->APPENDB64WithDots
+  Sign-- V^d -->sig
+  sig-- append signature into token -->APPENDB64WithDots
+```
+
+### Verify a token
+
+```mermaid
+flowchart TB
+  trustlookup[[trust lookup]]
+  kid-- Find RSA e -->trustlookup
+  trustlookup-- found trusted key -->e
+  sig-- unsign sig -->V
+  XOR[[XOR]]
+  
 ```
 
 A CA is setup with a key:
