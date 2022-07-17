@@ -131,6 +131,7 @@ flowchart TB
   ciphertextunderk-- fix k,plaintext -->Sha256
   XOR[[XOR]]
   Sign[[Sign]]
+  n-- modulus -->Sign
   Sha256-- Sha256 ciphertextunderk -->HE
   HE-- Sign hashed ciphertext  -->XOR
   k-- mix in key to recover -->XOR
@@ -146,12 +147,13 @@ flowchart TB
 ```mermaid
 flowchart TB
   trustlookup[[trust lookup]]
-  kid-- Find RSA e -->trustlookup
+  kid-- Find RSA n,e -->trustlookup
   trustlookup-- found trusted key -->e
   Sha256[[Sha256]]
   ciphertextunderk-- Sha256 ciphertextunderk -->Sha256
   Sha256-- proof of the hash of encrypted data -->HE
   Sign[[Sign]]
+  n-- modulus -->Sign
   e-- public key -->Sign
   sig-- unsign signature -->Sign
   Sign-- sig^e -->V
