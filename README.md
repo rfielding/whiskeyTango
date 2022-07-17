@@ -105,10 +105,11 @@ flowchart TB
   ciphertextunderk-- fix k,plaintext -->Sha256
   XOR[[XOR]]
   Sign[[Sign]]
-  Sha256-- Hash ciphertext  -->Sign
+  Sha256-- Sign hashed ciphertext  -->Sign
   Sign-- mix in signature -->XOR
   k-- key to recover -->XOR
-  XOR-- signature to unwrap -->APPENDB64WithDots
+  XOR-- signature to unwrap -->Sig
+  Sig-- append signature into token -->APPENDB64WithDots
 ```
 
 var header // a json chunk that includes alg, maybe kid, etc.
