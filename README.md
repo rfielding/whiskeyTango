@@ -117,17 +117,19 @@ First, the CA has to have generated a key
 ```mermaid
 flowchart TB
   GenerateRSA[[GenerateRSA]]
+  GenerateRSA-- assign an arbitrary key id -->kid
+  GenerateRSA-- verification key v -->k
   GenerateRSA-- modulus -->n
   GenerateRSA-- signing key s -->d
   GenerateRSA-- verification key v -->e
-  GenerateRSA-- assign an arbitrary key id -->kid
   Verifier[[Verifier Trust Store]]
+  k-- . -->Signer
   n-- . -->Signer
   d-- . -->Signer
   e-- . -->Signer
+  k-- lookup key in verifier trust file -->Verifier
   n-- . -->Verifier
   e-- . -->Verifier
-  k-- . -->Verifier
 ```
 
 Note that in RSA, the public key is `(n,e)`, and the private key is `(n,d)`.  The signer has everything in `(n,d,e)`.
