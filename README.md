@@ -91,6 +91,28 @@ It is similar to a JWT in that there is a header, a body, and a signature.  But 
 
 The good part of JWT is the idea of a simple json object that is digitally signed.  The existing JWT specification goes roughly like this:
 
+
+```
+var header // a json chunk that includes alg, maybe kid, etc.
+var claims // A json chunk that includes exp, issuer, etc.
+var signature // a signatuer over header and claims, ensure no modifications.
+jwt = join(".", [B64UEncode(header), B64UEncode(claims), B64UEncode(signature)]
+```
+
+This uses the common method of signature checking.  For RSA, the check would be this pattern:
+
+```
+signature = RSASign(priv, Sha256(plaintext))
+signedPlaintext = (plaintext,signature)
+```
+
+This is a very common pattern in cryptograpy, to give the plaintext and a signed hash of the plaintext.  The problem with this pattern is that it is _consentual_ for the verifier to bother verifying the signature.  This is because it is easy for the verifier to skip the signature check entirely, and simply return the plaintext.  That is ok if the CA is not put at risk by clients that follow protocol.  But it's very easy to just extract that claims and not check the signature, and JWT tokens are used from many languages.  Many developers just don't care about the signatures, or the details of any libraries they are using.
+
+We want a foolproof way of checking, such that if the client can even manage to get the plaintext, we are assured that the protocol was followed.  The only problem we have that we can't solve is verifying that the client actually checked an expiration date on a token.  But we can force the data to stay encrypted without a signature check, by forcing a signature check to produce a witness to decrypt the data.
+
+> The RSA keypair (s,v) can also be called (e,d) for "encrypt" and "decrypt", and here I will use the RSA names for them
+
+
 ```mermaid
 flowchart TB
   AESGCM[[AESGCM]]
@@ -114,24 +136,6 @@ flowchart TB
   Sign-- V^d -->Sig
   Sig-- append signature into token -->APPENDB64WithDots
 ```
-
-var header // a json chunk that includes alg, maybe kid, etc.
-var claims // A json chunk that includes exp, issuer, etc.
-var signature // a signatuer over header and claims, ensure no modifications.
-jwt = join(".", [B64UEncode(header), B64UEncode(claims), B64UEncode(signature)]
-```
-
-This uses the common method of signature checking.  For RSA, the check would be this pattern:
-
-```
-signature = RSASign(priv, Sha256(plaintext))
-signedPlaintext = (plaintext,signature)
-```
-
-This is a very common pattern in cryptograpy, to give the plaintext and a signed hash of the plaintext.  The problem with this pattern is that it is _consentual_ for the verifier to bother verifying the signature.  This is because it is easy for the verifier to skip the signature check entirely, and simply return the plaintext.  That is ok if the CA is not put at risk by clients that follow protocol.  But it's very easy to just extract that claims and not check the signature, and JWT tokens are used from many languages.  Many developers just don't care about the signatures, or the details of any libraries they are using.
-
-We want a foolproof way of checking, such that if the client can even manage to get the plaintext, we are assured that the protocol was followed.  The only problem we have that we can't solve is verifying that the client actually checked an expiration date on a token.  But we can force the data to stay encrypted without a signature check, by forcing a signature check to produce a witness to decrypt the data.
-
 
 A CA is setup with a key:
 
