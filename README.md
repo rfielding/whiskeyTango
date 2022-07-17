@@ -242,13 +242,16 @@ A CA is setup with a key:
 kid = ArbitraryNameForKeypair()
 
 # The RSA key pair that is used for (sign, verify):
-(e,d) = RSAKeypair()
+(n,d,e) = RSAKeypair()
 
 # the verify is "public" to those that are _allowed_ to decrypt the tokens.
 # that means that `(n,e)` is not entirely public.  `d` is secret to the CA only.
 ```
 
-A client will _trust_ a `kid` by mapping from `kid` to `e` in a JWK
+A client will _trust_ a `kid` by mapping from `kid` to `e` in a JWK.
+Unlike JWT, a key should be trusted prior to getting a token that uses it,
+rather than downloading a key to trust it automatically when a token is recieved;
+which is another way to defeat signature checks.
 
 ```
 # the trusts map is generally a JWK file, where this is true
