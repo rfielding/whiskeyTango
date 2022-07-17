@@ -148,8 +148,18 @@ flowchart TB
   trustlookup[[trust lookup]]
   kid-- Find RSA e -->trustlookup
   trustlookup-- found trusted key -->e
-  sig-- unsign sig -->V
+  Sha256[[Sha256]]
+  ciphertextunderk-- Sha256 ciphertextunderk -->Sha256
+  Sha256-- proof of the hash of encrypted data -->HE
+  Sign[[Sign]]
+  sig-- unsign signature -->Sign
+  e-- public key -->Sign
+  Sign-- extract V -->V
   XOR[[XOR]]
+  V-- XOR -->XOR
+  HE-- XOR -->XOR
+  XOR-- recover witness -->k
+
   
 ```
 
