@@ -118,16 +118,16 @@ First, the CA has to have generated a key
 flowchart TB
   GenerateRSA[[GenerateRSA]]
   GenerateRSA-- assign an arbitrary key id -->kid
-  GenerateRSA-- verification key v -->k
+  GenerateRSA-- verification key v -->kid
   GenerateRSA-- modulus -->n
   GenerateRSA-- signing key s -->d
   GenerateRSA-- verification key v -->e
   Verifier[[Verifier Trust Store]]
-  k-- . -->Signer
+  kid-- . -->Signer
   n-- . -->Signer
   d-- . -->Signer
   e-- . -->Signer
-  k-- lookup key in verifier trust file -->Verifier
+  kid-- lookup key in verifier trust file -->Verifier
   n-- . -->Verifier
   e-- . -->Verifier
 ```
