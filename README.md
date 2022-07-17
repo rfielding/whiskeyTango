@@ -105,7 +105,8 @@ flowchart TB
   ciphertextunderk-- fix k,plaintext -->Sha256
   XOR[[XOR]]
   Sign[[Sign]]
-  Sha256-- Sign hashed ciphertext  -->Sign
+  Sha256-- HE -->HE
+  HE-- Sign hashed ciphertext  -->Sign
   Sign-- mix in signature -->XOR
   k-- key to recover -->XOR
   XOR-- signature to unwrap -->Sig
