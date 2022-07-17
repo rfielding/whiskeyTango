@@ -93,8 +93,8 @@ The good part of JWT is the idea of a simple json object that is digitally signe
 
 ```mermaid
 flowchart LR
-  k--|AESGCM|-->ciphertextunderk
-  plaintext--|AESGCM|-->ciphertextunderk
+  k-- AESGCM -->ciphertextunderk
+  plaintext-- AESGCM -->ciphertextunderk
 ```
 
 var header // a json chunk that includes alg, maybe kid, etc.
