@@ -92,7 +92,7 @@ It is similar to a JWT in that there is a header, a body, and a signature.  But 
 The good part of JWT is the idea of a simple json object that is digitally signed.  The existing JWT specification goes roughly like this:
 
 ```mermaid
-flowchart LR
+flowchart UD
   AESGCM[[AESGCM]]
   k-- random secret witness -->AESGCM
   plaintext-- claims -->AESGCM
