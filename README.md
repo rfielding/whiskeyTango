@@ -152,9 +152,9 @@ flowchart TB
   ciphertextunderk-- Sha256 ciphertextunderk -->Sha256
   Sha256-- proof of the hash of encrypted data -->HE
   Sign[[Sign]]
-  sig-- unsign signature -->Sign
   e-- public key -->Sign
-  Sign-- extract V -->V
+  sig-- unsign signature -->Sign
+  Sign-- sig^e -->V
   XOR[[XOR]]
   V-- XOR -->XOR
   HE-- XOR -->XOR
