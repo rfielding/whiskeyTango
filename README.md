@@ -91,6 +91,10 @@ It is similar to a JWT in that there is a header, a body, and a signature.  But 
 
 The good part of JWT is the idea of a simple json object that is digitally signed.  The existing JWT specification goes roughly like this:
 
+```mermaid
+flowchart LR
+  k--- AESGCM ---ciphertextunderk
+  plaintext--- AESGCM ---ciphertextunderk
 ```
 var header // a json chunk that includes alg, maybe kid, etc.
 var claims // A json chunk that includes exp, issuer, etc.
