@@ -111,7 +111,7 @@ flowchart TB
   XOR-- XOR HE k -->V
   V-- XOR with HE to recover k -->Sign
   d-- use private signing key -->Sign
-  Sign-- V^s -->Sig
+  Sign-- V^d -->Sig
   Sig-- append signature into token -->APPENDB64WithDots
 ```
 
