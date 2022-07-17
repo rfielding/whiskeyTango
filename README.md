@@ -179,7 +179,8 @@ flowchart TB
   sig-- unsign signature -->Sign
   trustlookup[[trust lookup]]
   kid-- Find RSA n,e -->trustlookup
-  trustlookup-- found trusted key -->e
+  trustlookup-- found e of trusted key -->e
+  trustlookup-- found n of trusted key -->n
   Sign-- sig^e -->V
   XOR[[XOR]]
   V-- XOR -->XOR
