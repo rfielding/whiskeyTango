@@ -106,7 +106,7 @@ flowchart TB
   XOR[[XOR]]
   Sign[[Sign]]
   Sha256-- Sign hashed ciphertext  -->HE
-  HE-- sign the hash of encrypt-->Sign
+  HE-- sign the hash of encrypt -->Sign
   Sign-- mix in signature -->XOR
   k-- key to recover -->XOR
   XOR-- signature to unwrap -->Sig
