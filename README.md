@@ -18,9 +18,9 @@ Encrypted JWTs involve a complex specification in JOSE, that just compounds the 
 ## Motivation
 
 How would you feel about an encryption cipher that relied on client implementations to not fail?  Imagine such a cipher: The encryptor of the message does everything according to specification, and does not leak the secret key `k` for `ciphrtextunderk` that will decrypt to `plaintext`.  Yet, somebody implemented a decrypt cipher that manages to extract `plaintext` without knowledge of `k`.
-.
 
-We tolerate exactly this situation with digital signatures.  And it is completely unnecessary. In the hands of programmers that are just trying to get work done, this is very hazardous.  If a way is found to extract `plaintext` without bothering with cryptography, that is exactly what they will do.  We tolerate constructions like this for signing:
+
+We tolerate exactly this situation with digital signatures.  And it is completely unnecessary.  In the hands of programmers that are just trying to get work done, this is very hazardous.  If a way is found to extract `plaintext` without bothering with cryptography, that is exactly what they will do.  We tolerate constructions like this for signing:
 
 ```
 signedplaintext = {plaintext, Sign(Hash(plaintext))}
