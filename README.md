@@ -93,9 +93,6 @@ The good part of JWT is the idea of a simple json object that is digitally signe
 
 ```mermaid
 flowchart LR
-  k[(k)]
-  plaintext[(plaintext)]
-  ciphertextunderk[(ciphertextunderk)]
   k--|AESGCM|-->ciphertextunderk
   plaintext--|AESGCM|-->ciphertextunderk
 ```
