@@ -38,7 +38,7 @@ What is important is that we _do_ _not_ rely on a correct client.  An incorrect 
 ```
 # a witness is a random value we want as proof
 ciphertext = encrypt(witness, plaintext)
-signedciphertext = {ciphertext, sig = (Sign(Hash(ciphertext) xor k))}
+signedciphertext = {ciphertext, sig = (Sign(Hash(ciphertext) xor witness))}
 
 ciphertext = signedciphertext[0]
 
