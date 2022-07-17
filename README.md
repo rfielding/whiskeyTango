@@ -159,8 +159,10 @@ flowchart TB
   V-- XOR -->XOR
   HE-- XOR -->XOR
   XOR-- recover witness -->k
-
-  
+  AESGCM[[AESGCM]]
+  ciphertextunderk-- claims to recover -->AESGCM  
+  k-- witness that we followed protocol -->AESGCM  
+  AESGCM-- recovered claims -->claims 
 ```
 
 A CA is setup with a key:
