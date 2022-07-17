@@ -109,7 +109,7 @@ flowchart TB
   HE-- Sign hashed ciphertext  -->XOR
   k-- mix in key to recover -->XOR
   XOR-- XOR HE k -->V
-  V-- -->Sign
+  V-- V^s -->Sign
   Sign-- signature to send -->Sig
   Sig-- append signature into token -->APPENDB64WithDots
 ```
