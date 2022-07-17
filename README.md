@@ -110,7 +110,8 @@ flowchart TB
   k-- mix in key to recover -->XOR
   XOR-- XOR HE k -->V
   V-- V^s -->Sign
-  Sign-- signature to send -->Sig
+  d-- Sign -->Sign
+  Sign-- . -->Sig
   Sig-- append signature into token -->APPENDB64WithDots
 ```
 
