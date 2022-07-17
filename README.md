@@ -94,12 +94,12 @@ The good part of JWT is the idea of a simple json object that is digitally signe
 ```mermaid
 flowchart TB
   AESGCM[[AESGCM]]
-  APPENDB64WithDOTS[[APPENDB64WithDOTS]]
+  APPENDB64WithDots[[APPENDB64WithDots]]
   k-- random secret witness -->AESGCM
   plaintext-- claims -->AESGCM
   AESGCM-- decrypted upon proof of verification -->ciphertextunderk
   kid-- globally unique key identifier -->APPENDB64WithDots
-  ciphertextunderk-- claims to decrypt -->APPENDB64WithDocs
+  ciphertextunderk-- claims to decrypt -->APPENDB64WithDots
   APPENDB64WithDots-- token to give to bearer -->token
 ```
 
