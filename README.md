@@ -101,6 +101,8 @@ flowchart TB
   kid-- globally unique key identifier -->APPENDB64WithDots
   ciphertextunderk-- claims to decrypt -->APPENDB64WithDots
   APPENDB64WithDots-- token to give to bearer -->token
+  Sha256[[Sha256]]
+  ciphertextunderk-- require k,plaintext -->Sha256
 ```
 
 var header // a json chunk that includes alg, maybe kid, etc.
