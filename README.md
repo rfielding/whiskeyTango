@@ -112,7 +112,7 @@ This is a very common pattern in cryptograpy, to give the plaintext and a signed
 
 ### Setup CA
 
-First, the CA has to have generated a key
+First, the CA has to have generated a key.  The trust files lack `d`, as that is private to the signer. 
 
 ```mermaid
 flowchart TB
