@@ -108,7 +108,8 @@ flowchart TB
   Sha256-- Sha256 ciphertextunderk -->HE
   HE-- Sign hashed ciphertext  -->XOR
   k-- mix in key to recover -->XOR
-  XOR-- sign xored data with RSA d -->Sign
+  XOR-- XOR HE k -->V
+  V-- -->Sign
   Sign-- signature to send -->Sig
   Sig-- append signature into token -->APPENDB64WithDots
 ```
