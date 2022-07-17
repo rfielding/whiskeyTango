@@ -198,17 +198,17 @@ A CA is setup with a key:
 kid = ArbitraryNameForKeypair()
 
 # The RSA key pair that is used for (sign, verify):
-(s,v) = RSAKeypair()
+(e,d) = RSAKeypair()
 
 # the verify is "public" to those that are _allowed_ to decrypt the tokens.
 # that means that v is not entirely public.  s is secret to the CA only.
 ```
 
-A client will _trust_ a `kid` by mapping from `kid` to `v` in a JWK
+A client will _trust_ a `kid` by mapping from `kid` to `e` in a JWK
 
 ```
 # the trusts map is generally a JWK file, where this is true
-trusts[kid].v == v
+trusts[kid].e == e
 ```
 	
 When the CA is asked to sign claims, for clients that trust a `kid`,	
@@ -231,7 +231,7 @@ E = AESEncrypt(k, claims)
 HE = Sha256(E)
 # sign both k and ciphertext, so that we can recover k from HE and v
 V = Xor(K, HE)
-Sig = RSASign(s, V)
+Sig = RSASign(d, V)
 Token = join(".", map(B64E, [kid, E, Sig]))
 ```
 
@@ -246,11 +246,11 @@ When a client gets a token, it is required that the client posesses a JWK entry 
 ```
 kid = token.kid
 E = token.E
-#client does NOT have trusts[kid].s !!
-v = trusts[kid].v 
+#client does NOT have trusts[kid].d !!
+e = trusts[kid].e 
 HE = Sha256(E)
 Sig = token.Sig
-V = VerifyRSA(v,Sig)
+V = VerifyRSA(d,Sig)
 k = Xor(V,HE)
 claims = AESDecrypt(k, E)
 ```
@@ -259,7 +259,7 @@ Most signature checks simply trust that the client is defending itself and check
 
 - k is the witness
 - require that HE be produced by the client
-- require that V be produce by the client, using VerifyRSA(v,Sig)
+- require that V be produce by the client, using VerifyRSA(e,Sig)
 - Xor(V,HE) = Xor(Xor(k,HE),HE) = k
 - k it a witness that the signature was checked, so we can decrypt claims. `claims = AESDecrypt(k, E)
 
