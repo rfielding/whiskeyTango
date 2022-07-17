@@ -109,9 +109,9 @@ flowchart TB
   HE-- Sign hashed ciphertext  -->XOR
   k-- mix in key to recover -->XOR
   XOR-- XOR HE k -->V
-  V-- V^s -->Sign
-  d-- Sign -->Sign
-  Sign-- . -->Sig
+  V-- fixes plaintext,k -->Sign
+  d-- use private signing key -->Sign
+  Sign-- V^s -->Sig
   Sig-- append signature into token -->APPENDB64WithDots
 ```
 
