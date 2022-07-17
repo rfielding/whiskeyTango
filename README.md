@@ -95,8 +95,8 @@ The good part of JWT is the idea of a simple json object that is digitally signe
 flowchart TB
   AESGCM[[AESGCM]]
   APPENDB64WithDots[[kid.ciphertextunderk.sig]]
-  k-- fresh random secret witness -->AESGCM
   plaintext-- claims -->AESGCM
+  k-- fresh random secret witness -->AESGCM
   AESGCM-- decrypted upon proof of verification -->ciphertextunderk
   kid-- globally unique key identifier -->APPENDB64WithDots
   ciphertextunderk-- claims to decrypt -->APPENDB64WithDots
