@@ -102,7 +102,13 @@ flowchart TB
   ciphertextunderk-- claims to decrypt -->APPENDB64WithDots
   APPENDB64WithDots-- token to give to bearer -->token
   Sha256[[Sha256]]
-  ciphertextunderk-- require k,plaintext -->Sha256
+  ciphertextunderk-- fix k,plaintext -->Sha256
+  XOR[[XOR]]
+  Sign[[Sign]]
+  Sha256-- Hash ciphertext  -->Sign
+  Sign-- mix in signature -->XOR
+  k-- key to recover -->XOR
+  XOR-- signature to unwrap -->APPENDB64WithDots
 ```
 
 var header // a json chunk that includes alg, maybe kid, etc.
