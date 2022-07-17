@@ -101,7 +101,7 @@ flowchart TB
   kid-- globally unique key identifier -->APPENDB64WithDots
   ciphertextunderk-- claims to decrypt -->APPENDB64WithDots
   APPENDB64WithDots-- token to give to bearer -->token
-  Sha256[[Sha256(ciphertextunderk)]]
+  Sha256[[Sha256]]
   ciphertextunderk-- fix k,plaintext -->Sha256
   XOR[[XOR]]
   Sign[[Sign]]
