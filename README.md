@@ -112,7 +112,7 @@ This is a very common pattern in cryptograpy, to give the plaintext and a signed
 
 ### Setup CA
 
-First, the CA has to have generated a key.  The trust files lack `d`, as that is private to the signer. 
+First, the CA has to have generated a key.  The trust files lack `d`, as that is private to the signer. Ideally, those who are not verifiers lack not only `e`, but `n` as well; as they have not been granted the verification keys. 
 
 ```mermaid
 flowchart TB
