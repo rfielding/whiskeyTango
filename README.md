@@ -316,7 +316,7 @@ It is unusual to do a setup that requires a witness that verification actually h
 
 ## Attempt To Forge Signatures
 
-The value `V` is `HE xor k`.  But notice that `HE` is a function of `k`, because `(HE = Sha256(AESGCM(k,plaintext)))`.  So, if we try to choose a new `k` that gives us `V = (HE xor k)` to supply a different ciphertext, then we can't simply target the value `V` because when `k` changes, `HE` also changes.
+The value `V` is `HE xor k`.  But notice that `HE` is a function of `k`, because `(HE = Sha256(AESGCM(k,plaintext)))`.  So, if we try to choose a new `k` that gives us `V = (HE xor k)` to supply a different ciphertext, then we can't simply target the value `V` because when `k` changes, `HE` also changes.  Similarly, if we encrypt the `plaintext` we would like signed to produce a `HE`, then the key `k` is chosen when we produce `HE`.  We cannot arbitrarily choose a `k` that will decrypt `HE`.  If we could independently pick a `k` that causes us to yield the target `V`, then we would be able to forge signatures.
 
 
 ## Example output
