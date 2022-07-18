@@ -314,6 +314,10 @@ Most signature checks simply trust that the client is defending itself and check
 
 It is unusual to do a setup that requires a witness that verification actually happened.  But if you are going to have encrypted tokens, the tokens need verification, and the claims need a decrypt.  This just means that the RSA public key that kid leads to is not _entirely_ public.  It's public to those allowed to verify the token.
 
+## Attempt To Forge Signatures
+
+The value `V` is `HE xor k`.  But notice that `HE` is a function of `k`, because `(HE = Sha256(AESGCM(k,plaintext)))`.  So, if we try to choose a new `k` that gives us `V = (HE xor k)` to supply a different ciphertext, then we can't simply target the value `V` because when `k` changes, `HE` also changes.
+
 
 ## Example output
 
