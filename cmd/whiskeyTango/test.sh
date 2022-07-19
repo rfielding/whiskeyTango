@@ -15,7 +15,7 @@ echo --- compile binary
 go build -o wt main.go
 
 echo --- clean up
-rm *.json
+rm *.jwk *.wt
 
 echo --- make ca
 ./wt -ca signer.jwk -kid rfielding-1 -create -bits 2048 
