@@ -27,7 +27,7 @@ cat trusted.jwk | $jq
 echo
 
 echo --- sign token
-echo '{"age":["adult"]}' | ./wt -ca signer.jwk -kid rfielding-1 -sign -minutes 1 > token.wt
+echo '{"email":["rob.fielding@gmail.com","rrr00bb@yahoo.com"],"age":["adult"]}' | ./wt -ca signer.jwk -kid rfielding-1 -sign -minutes 1 > token.wt
 cat token.wt
 echo
 
