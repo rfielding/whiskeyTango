@@ -329,6 +329,10 @@ Most signature checks simply trust that the client is defending itself and check
 
 It is unusual to do a setup that requires a witness that verification actually happened.  But if you are going to have encrypted tokens, the tokens need verification, and the claims need a decrypt.  This just means that the RSA public key that kid leads to is not _entirely_ public.  It's public to those allowed to verify the token.
 
+## A Note About The Distinction Between Public-Key Cryptography versus Asymmetric Cryptography
+
+If you want the signer to use a standard Public-Key Cryptography key for RSA, then pass in `-smalle` flag to get a small and standard `e` for the public RSA exponent.  If you do so, then there is a `public` key and a `private` key.  But RSA is capable of more than this.  With RSA, you can use both `e` and `d` exponents having the same properties; and both are private keys for different purposes.  The signer has `(n,d,e)`, and verifiers only have `(n,e)`.  It's almost the same as simply only distributing public keys to verifiers; except it _assumes_ that `n` may be easily figured out from looking at signed tokens.  In any case, `asymmetric` cryptography doesn't necessarily mean that one of the keys is `public`.  Therefore the value for the exponent that is usually public and a well known value is a value that can only be discovered by being given the full "public" key `(n,e)`.  This means that only the signer can create values, and we can limit who is allowed to verify signed values.
+
 ## Attempt To Forge Signatures
 
 The value `V` is `HE xor k`.  But notice that `HE` is a function of `k`, because `(HE = Sha256(AESGCM(k,plaintext)))`.  So, if we try to choose a new `k` that gives us `V = (HE xor k)` to supply a different ciphertext, then we can't simply target the value `V` because when `k` changes, `HE` also changes.  Similarly, if we encrypt the `plaintext` we would like signed to produce a `HE`, then the key `k` is chosen when we produce `HE`.  We cannot arbitrarily choose a `k` that will decrypt `HE`.  If we could independently pick a `k` that causes us to yield the target `V`, then we would be able to forge signatures.
