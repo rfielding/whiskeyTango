@@ -17,21 +17,21 @@ import (
 
 // Do not use pointers to these!  Copies will be modified to blank out CA data
 type JWKey struct {
-	Kty string `json:"kty"`
-	Use string `json:"use,omitempty"`
-	Kid string `json:"kid,omitempty"`
-	Alg string `json:"alg,omitempty"`
-	Bits int `json:"bits,omitempty"`
+	Kty  string `json:"kty"`
+	Use  string `json:"use,omitempty"`
+	Kid  string `json:"kid,omitempty"`
+	Alg  string `json:"alg,omitempty"`
+	Bits int    `json:"bits,omitempty"`
 
-	Crv  string   `json:"crv,omitempty"`
-	X    string   `json:"x,omitempty"`
-	Y    string   `json:"y,omitempty"`
-	D    string   `json:"d,omitempty"` // comment this out if not CA
-	N    string   `json:"n,omitempty"`
-	E    string   `json:"e,omitempty"`
-	K    string   `json:"k,omitempty"` // comment this out if not CA?? TODO
+	Crv string `json:"crv,omitempty"`
+	X   string `json:"x,omitempty"`
+	Y   string `json:"y,omitempty"`
+	D   string `json:"d,omitempty"` // comment this out if not CA
+	N   string `json:"n,omitempty"`
+	E   string `json:"e,omitempty"`
+	K   string `json:"k,omitempty"` // comment this out if not CA?? TODO
 
-        // Parsed bigints
+	// Parsed bigints
 	Nint *big.Int `json:"-"`
 	Dint *big.Int `json:"-"`
 	Eint *big.Int `json:"-"`
@@ -59,8 +59,8 @@ func (keys *JWKeys) Insert(kid string, k JWKey) {
 }
 
 // Allocate a new RSA key for kid
-func (keys *JWKeys) AddRSA(kid string, bits int) error {
-	k, err := NewRSAJWK(kid, bits)
+func (keys *JWKeys) AddRSA(kid string, bits int, smalle bool) error {
+	k, err := NewRSAJWK(kid, bits, smalle)
 	if err != nil {
 		return fmt.Errorf("Unable to add in JWK RSA kid %s to JWKeys: %v", kid, err)
 	}
@@ -86,7 +86,7 @@ func (key JWKey) AsJsonPrivate() string {
 }
 
 // Generate a new RSA keypair for a kid - CA will have many of these
-func NewRSAJWK(kid string, bits int) (JWKey, error) {
+func NewRSAJWK(kid string, bits int, smalle bool) (JWKey, error) {
 	k := JWKey{}
 	k.Kty = "RSA"
 	k.Bits = bits
@@ -105,37 +105,42 @@ func NewRSAJWK(kid string, bits int) (JWKey, error) {
 	maxModPhi := new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(bits)), nil)
 
 	// I think some D have no inverse mod phi, but it only takes a few tries to find one randomly
-	for {
-		// Generate
-		D, err := rand.Int(rand.Reader, maxModPhi)
-		if err != nil {
-			return k, fmt.Errorf("Unable to generate random D: %v", err)
-		}
-		k.Dint = new(big.Int).Mod(D, phi)
-		k.D = base64.RawURLEncoding.EncodeToString(k.Dint.Bytes())
-		if k.Dint == nil {
-			continue
-		}
+	if smalle {
+		k.Dint = priv.D
+		k.Eint = new(big.Int).SetInt64(int64(priv.PublicKey.E))
+		k.Nint = priv.PublicKey.N
+	} else {
+		for {
+			// Generate
+			D, err := rand.Int(rand.Reader, maxModPhi)
+			if err != nil {
+				return k, fmt.Errorf("Unable to generate random D: %v", err)
+			}
+			k.Dint = new(big.Int).Mod(D, phi)
+			if k.Dint == nil {
+				continue
+			}
 
-		if new(big.Int).GCD(nil, nil, k.Dint, phi).Cmp(one) != 0 {
-			continue
+			if new(big.Int).GCD(nil, nil, k.Dint, phi).Cmp(one) != 0 {
+				continue
+			}
+
+			k.Eint = new(big.Int).ModInverse(k.Dint, phi)
+			if k.Eint == nil {
+				continue
+			}
+
+			if new(big.Int).GCD(nil, nil, k.Eint, phi).Cmp(one) != 0 {
+				continue
+			}
+
+			k.Nint = priv.N
+			break
 		}
-
-		k.Eint = new(big.Int).ModInverse(k.Dint, phi)
-		if k.Eint == nil {
-			continue
-		}
-
-		if new(big.Int).GCD(nil, nil, k.Eint, phi).Cmp(one) != 0 {
-			continue
-		}
-
-		k.E = base64.RawURLEncoding.EncodeToString(k.Eint.Bytes())
-
-		k.Nint = priv.N
-		k.N = base64.RawURLEncoding.EncodeToString(k.Nint.Bytes())
-		break
 	}
+	k.D = base64.RawURLEncoding.EncodeToString(k.Dint.Bytes())
+	k.E = base64.RawURLEncoding.EncodeToString(k.Eint.Bytes())
+	k.N = base64.RawURLEncoding.EncodeToString(k.Nint.Bytes())
 	return k, nil
 }
 
