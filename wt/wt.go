@@ -340,6 +340,11 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) 
 		theKey.Nint,
 	)
 
+	// If V is larger than a sha256 hash, then it can't be genuine!
+	if len(V.Bytes()) > 64 {
+		return nil, fmt.Errorf("Signature is invalid")
+	}
+
 	// Extract the key that proves that we checked the signature
 	k := make([]byte, 32)
 	new(big.Int).Xor(V, HE).FillBytes(k)
