@@ -17,6 +17,19 @@ This is a simplified web token format that has the property that you can't get a
 
 Encrypted JWTs involve a complex specification in JOSE, that just compounds the complexity problem associated with JWT hazards.  There are many situations where the CA has the signing key, and only clients allowed to decrypt the claims need to check the validity of those claims.  So, the public keys to verify a JWT can actually be secrets in that situation.
 
+## Prerequisites
+
+- Go 1.16 or higher
+- jq
+
+```bash
+go mod tidy
+```
+
+```bash
+./cmd/whiskeyTango/test.sh
+```
+
 ## Motivation
 
 How would you feel about an encryption cipher that relied on client implementations to not fail?  Imagine such a cipher: The encryptor of the message does everything according to specification, and does not leak the secret key `k` for `ciphrtextunderk` that will decrypt to `plaintext`.  Yet, somebody implemented a decrypt cipher that manages to extract `plaintext` without knowledge of `k`.
