@@ -1,6 +1,8 @@
 Whiskey Tango
 =============
 
+![wt.png](wt.png)
+
 This is a simplified web token format that has the property that you can't get aaccess to the claims unless you followed the correct signature check protocol.  Most of the problems with JWT have to do with the fact that its design allows a large number of hazardous practices.
 
 - JWT has a complex RFC that goes beyond the simple and easy to understand uses of jwt.io, making it difficult to implement correctly.
