@@ -78,9 +78,9 @@ func StoreCA(f string, keys *wt.JWKeys) {
 	}
 }
 
-func MakeCA(kid string) {
+func MakeCA(kid string, bits int) {
 	keys := &wt.JWKeys{}
-	keys.AddRSA(kid)
+	keys.AddRSA(kid, bits)
 
 	caJson := wt.AsJson(keys)
 	f := fmt.Sprintf("%s-sign.json", kid)
@@ -105,8 +105,8 @@ func SmokeTest() {
 	keys := &wt.JWKeys{}
 	kid1 := "usa:1234:1"
 	kid2 := "usa:1234:2"
-	keys.AddRSA(kid1)
-	keys.AddRSA(kid2)
+	keys.AddRSA(kid1, 2048)
+	keys.AddRSA(kid2, 2048)
 
 	// re-parse it to ensure that we don't lose info
 	cajson := wt.AsJson(keys)
@@ -148,6 +148,7 @@ func main() {
 	trust := flag.String("trust", "", "trust a CA key")
 	create := flag.Bool("create", false, "Create an item")
 	sign := flag.Bool("sign", false, "Sign a token")
+	bits := flag.Int("bits", 2048, "bits for the RSA key")
 	verify := flag.Bool("verify", false, "Verify a token")
 	minutes := flag.Int64("minutes", 20, "Expiration in minutes")
 	kid := flag.String("kid", "", "kid to issue")
@@ -164,7 +165,7 @@ func main() {
 		}
 		if *create && len(*kid) > 0 {
 			// ca [fname] create kid [kid]
-			keys.AddRSA(*kid)
+			keys.AddRSA(*kid, *bits)
 			StoreCA(*ca, keys)
 			return
 		}

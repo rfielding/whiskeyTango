@@ -10,7 +10,7 @@ echo --- clean up
 rm *.json
 
 echo --- make ca
-./wt -ca signer.json -kid rfielding-1 -create
+./wt -ca signer.json -kid rfielding-1 -create -bits 2048
 
 echo --- trust signer rfielding-1
 ./wt -ca signer.json -kid rfielding-1 -trust trusted.json

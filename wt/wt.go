@@ -21,6 +21,7 @@ type JWKey struct {
 	Use string `json:"use,omitempty"`
 	Kid string `json:"kid,omitempty"`
 	Alg string `json:"alg,omitempty"`
+	Bits int `json:"bits,omitempty"`
 
 	Crv  string   `json:"crv,omitempty"`
 	X    string   `json:"x,omitempty"`
@@ -29,6 +30,8 @@ type JWKey struct {
 	N    string   `json:"n,omitempty"`
 	E    string   `json:"e,omitempty"`
 	K    string   `json:"k,omitempty"` // comment this out if not CA?? TODO
+
+        // Parsed bigints
 	Nint *big.Int `json:"-"`
 	Dint *big.Int `json:"-"`
 	Eint *big.Int `json:"-"`
@@ -56,8 +59,8 @@ func (keys *JWKeys) Insert(kid string, k JWKey) {
 }
 
 // Allocate a new RSA key for kid
-func (keys *JWKeys) AddRSA(kid string) error {
-	k, err := NewRSAJWK(kid)
+func (keys *JWKeys) AddRSA(kid string, bits int) error {
+	k, err := NewRSAJWK(kid, bits)
 	if err != nil {
 		return fmt.Errorf("Unable to add in JWK RSA kid %s to JWKeys: %v", kid, err)
 	}
@@ -83,12 +86,12 @@ func (key JWKey) AsJsonPrivate() string {
 }
 
 // Generate a new RSA keypair for a kid - CA will have many of these
-func NewRSAJWK(kid string) (JWKey, error) {
-	sz := 2 * 1024
+func NewRSAJWK(kid string, bits int) (JWKey, error) {
 	k := JWKey{}
 	k.Kty = "RSA"
+	k.Bits = bits
 	k.Kid = kid
-	priv, err := rsa.GenerateKey(rand.Reader, sz)
+	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return k, fmt.Errorf("Unable to generate RSA Keypair: %v", err)
 	}
@@ -99,7 +102,7 @@ func NewRSAJWK(kid string) (JWKey, error) {
 		new(big.Int).Sub(priv.Primes[0], one),
 		new(big.Int).Sub(priv.Primes[1], one),
 	)
-	maxModPhi := new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(sz)), nil)
+	maxModPhi := new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(bits)), nil)
 
 	// I think some D have no inverse mod phi, but it only takes a few tries to find one randomly
 	for {
