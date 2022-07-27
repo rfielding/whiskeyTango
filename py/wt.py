@@ -24,14 +24,16 @@ def wt_find_trust(trust, kid):
             return v
     return None
 
+
 # Verify with date check
 def wt_verify(trust, token, unixNow):
     claims = wt_extract_claims(trust, token)
     parsed = json.loads(claims)
     if parsed["exp"] < unixNow:
-      return "ERROR: expired token"
+        return "ERROR: expired token"
     return parsed
- 
+
+
 # Extracting claims from the token is proof that we verified it
 def wt_extract_claims(trust, token):
     # split into parts
