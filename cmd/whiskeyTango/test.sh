@@ -4,7 +4,7 @@
 cd `dirname $0`
 
 # If we don't have jq, then just use cat
-if command -v jq
+if command -v jq 2&>1 /dev/null
 then
   jq=jq
 else
@@ -19,7 +19,6 @@ rm *.jwk *.wt
 
 echo --- make ca
 ./wt -ca signer.jwk -kid rfielding-1 -create -bits 2048
-echo
 
 echo --- trust signer rfielding-1
 ./wt -ca signer.jwk -kid rfielding-1 -trust trusted.jwk

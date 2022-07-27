@@ -17,7 +17,7 @@ import datetime
 # The information about the key moves into the JWK,
 # not into the token; where attackers can confuse
 # us into negotiating forgeries
-def wt_find_trust(trust, kid):
+def wt_find_trust(trust: any, kid: str) -> any:
     for i in range(0, len(trust["keys"])):
         v = trust["keys"][i]
         if v["kid"] == kid and v["kty"] == "RSA":
@@ -26,7 +26,7 @@ def wt_find_trust(trust, kid):
 
 
 # Verify with date check
-def wt_verify(trust, token, unixNow):
+def wt_verify(trust: any, token: str, unixNow: int) -> any:
     claims = wt_extract_claims(trust, token)
     parsed = json.loads(claims)
     if parsed["exp"] < unixNow:
@@ -35,7 +35,7 @@ def wt_verify(trust, token, unixNow):
 
 
 # Extracting claims from the token is proof that we verified it
-def wt_extract_claims(trust, token):
+def wt_extract_claims(trust: any, token: str) -> str:
     # split into parts
     tokens = token.split(".")
     if len(tokens) != 3:
@@ -65,7 +65,7 @@ def wt_extract_claims(trust, token):
 
 
 # turn base64 encoded keys to big ints to simplify verify code
-def wt_trust_init(trust):
+def wt_trust_init(trust: any) -> None:
     keys = trust["keys"]
     for k in range(0, len(keys)):
         e = trust["keys"][k]["e"]
@@ -79,7 +79,7 @@ def wt_trust_init(trust):
 
 
 # Support same cli as whiskeyTango just for verifying WT
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser("whiskeyTango auth tokens")
     parser.add_argument("-ca")
     parser.add_argument("-verify", action="store_true")
@@ -98,6 +98,7 @@ def main():
             wt_trust_init(trust)
         unixNow = calendar.timegm(datetime.datetime.utcnow().utctimetuple())
         print(json.dumps(wt_verify(trust, token, unixNow)))
+    return 0
 
 
 main()
