@@ -64,7 +64,7 @@ def wt_extract_claims(trust, token):
     return "ERROR: no rsakey found for %s" % (kid)
 
 
-# turn base64 encoded keys to bit ints to simplify verify code
+# turn base64 encoded keys to big ints to simplify verify code
 def wt_trust_init(trust):
     keys = trust["keys"]
     for k in range(0, len(keys)):
