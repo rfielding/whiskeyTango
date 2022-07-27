@@ -21,6 +21,7 @@ Encrypted JWTs involve a complex specification in JOSE, that just compounds the 
 
 - Go 1.16 or higher
 - jq
+- python3 (optional) with cryptography installed
 
 ```bash
 go mod tidy
@@ -28,6 +29,7 @@ go mod tidy
 
 ```bash
 ./cmd/whiskeyTango/test.sh
+./py/test.sh # if using python
 ```
 
 ## Motivation
