@@ -31,6 +31,6 @@ echo '{"email":["rob.fielding@gmail.com","rrr00bb@yahoo.com"],"age":["adult"]}' 
 cat token.wt
 echo
 
-echo --- verify token
+echo --- verify token from golang
 cat token.wt | ./wt -ca trusted.jwk -verify | $jq
 )
