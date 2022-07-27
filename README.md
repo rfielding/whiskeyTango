@@ -386,6 +386,8 @@ cat token.wt | ./wt -ca trusted.json -verify
 
 - `cat token.wt | wt -ca trusted.json -verify` extracts the claims about the user.  The signer knows the claims, and should have verified that they were true.  The user may not be able to decode these claims.  But since we were granted the RSA (less-than) public key, we can decode what these claims are.
 
-The output when run is like:
+The output when run looks like this:
 
 ![testShot.png](testShot.png)
+
+The Python and Go implementations of token validation are in here.
