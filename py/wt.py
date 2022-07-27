@@ -97,7 +97,7 @@ def main():
             trust = json.loads(f.read())
             wt_trust_init(trust)
         unixNow = calendar.timegm(datetime.datetime.utcnow().utctimetuple())
-        print(wt_verify(trust, token, unixNow))
+        print(json.dumps(wt_verify(trust, token, unixNow)))
 
 
 main()
