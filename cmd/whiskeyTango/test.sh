@@ -4,7 +4,7 @@
 cd `dirname $0`
 
 # If we don't have jq, then just use cat
-if command -v jq 2&>1 /dev/null
+if command -v jq 2>&1 /dev/null
 then
   jq=jq
 else
