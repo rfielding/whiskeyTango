@@ -25,6 +25,7 @@ Encrypted JWTs involve a complex specification in JOSE, that just compounds the 
 
 ```bash
 go mod tidy
+pip3 install cryptography # optional for python
 ```
 
 ```bash
