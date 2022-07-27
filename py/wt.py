@@ -9,6 +9,8 @@ import base64
 import json
 import hashlib
 import math
+import calendar
+import datetime
 
 # The only plaintext in the token is the kid,
 # used to look up the key that encrypted it.
@@ -22,7 +24,14 @@ def wt_find_trust(trust, kid):
             return v
     return None
 
-
+# Verify with date check
+def wt_verify(trust, token, unixNow):
+    claims = wt_extract_claims(trust, token)
+    parsed = json.loads(claims)
+    if parsed["exp"] < unixNow:
+      return "ERROR: expired token"
+    return parsed
+ 
 # Extracting claims from the token is proof that we verified it
 def wt_extract_claims(trust, token):
     # split into parts
@@ -85,7 +94,8 @@ def main():
         with open(caname) as f:
             trust = json.loads(f.read())
             wt_trust_init(trust)
-        print(wt_extract_claims(trust, token))
+        unixNow = calendar.timegm(datetime.datetime.utcnow().utctimetuple())
+        print(wt_verify(trust, token, unixNow))
 
 
 main()
