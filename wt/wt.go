@@ -85,6 +85,9 @@ func (key JWKey) AsJsonPrivate() string {
 	return string(j)
 }
 
+// It's big-endian, urlEncoded base64 for the numbers
+var NumberEncoding = base64.RawURLEncoding
+
 // Generate a new RSA keypair for a kid - CA will have many of these
 func NewRSAJWK(kid string, bits int, smalle bool) (JWKey, error) {
 	k := JWKey{}
@@ -138,9 +141,9 @@ func NewRSAJWK(kid string, bits int, smalle bool) (JWKey, error) {
 			break
 		}
 	}
-	k.D = base64.RawURLEncoding.EncodeToString(k.Dint.Bytes())
-	k.E = base64.RawURLEncoding.EncodeToString(k.Eint.Bytes())
-	k.N = base64.RawURLEncoding.EncodeToString(k.Nint.Bytes())
+	k.D = NumberEncoding.EncodeToString(k.Dint.Bytes())
+	k.E = NumberEncoding.EncodeToString(k.Eint.Bytes())
+	k.N = NumberEncoding.EncodeToString(k.Nint.Bytes())
 	return k, nil
 }
 
@@ -153,15 +156,15 @@ func ParseJWK(b []byte) (*JWKeys, error) {
 	for _, v := range keys.Keys {
 		// Set the RSAPublicKey field if it's blank
 		if v.Kty == "RSA" && len(v.N) > 0 && len(v.E) > 0 {
-			nn, err := base64.RawURLEncoding.DecodeString(v.N)
+			nn, err := NumberEncoding.DecodeString(v.N)
 			if err != nil {
 				return nil, fmt.Errorf("Cannot parse RSA N: %v", err)
 			}
-			nd, err := base64.RawURLEncoding.DecodeString(v.D)
+			nd, err := NumberEncoding.DecodeString(v.D)
 			if err != nil {
 				return nil, fmt.Errorf("Cannot parse RSA D: %v", err)
 			}
-			ne, err := base64.RawURLEncoding.DecodeString(v.E)
+			ne, err := NumberEncoding.DecodeString(v.E)
 			if err != nil {
 				return nil, fmt.Errorf("Cannot parse RSA E: %v", err)
 			}

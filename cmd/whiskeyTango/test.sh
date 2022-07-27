@@ -18,7 +18,7 @@ echo --- clean up
 rm *.jwk *.wt
 
 echo --- make ca
-./wt -ca signer.jwk -kid rfielding-1 -create -bits 2048 
+./wt -ca signer.jwk -kid rfielding-1 -create -bits 2048
 echo
 
 echo --- trust signer rfielding-1
