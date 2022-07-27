@@ -388,29 +388,4 @@ cat token.wt | ./wt -ca trusted.json -verify
 
 The output when run is like:
 
-```
->./cmd/whiskeyTango/test.sh 
---- compile binary
---- clean up
---- make ca
---- trust signer rfielding-1
-{
-  "keys": [
-    {
-      "kty": "RSA",
-      "kid": "rfielding-1",
-      "n": "qmCFmPNAT4G9M8D0yS6gFqKdD6eTF7ihFFnw8yPZTqGiI178GKvGu9LzmrpxDsQXCNVEETXWvmqcnTT3uyvSO5jEATsc0QREMwxZv-mZgLsl0VT-LTwDo-CFORTijoDuS8qgy0k7pL__Zjt7fY_EmdKnhcIq-xCAhmSGEweT6t87GDMZv1hg64vZLlUJeVtWQemZ4JbC7PJ6HLvsybnkVH3mGJNFW9Z49fezxTq19zSKng17bTpvyGRzkavKcQqDq8tJy755d9K_cA_DjI8nZfosh1UoqW3fBJwcHp5WRk-O9WXlE8smQ4JKUX7bjnjYa5ABWm46Ukaa24OL_vy8vQ",
-      "e": "EpJieAbeEt7EdXTb48VV3SRuOzS8RV3vjtN_M3uCK25Nc0wzAZXum9fX_VBzn0N11ZUNqXuLRlgfbtXkokMEaYSl9WdZSrIEy8aBkYXUh5PfV89Dxo4jYLdRVzlZf5yygwSdM5LuV-f3jbDMTbncmOj3HOBFTdYvC7riELtZ0VpNeoi86ZPvbR4ecgFwXM1hZ_jSPz54JUG_YmmPU5RzggoHsW-VZJVMDII6d3nB5bn285EL4wtfELhnPy5X-FaYPeYlYqVdORBDB0K_TZuMzfC_zmD3pV9a-hvLfJMkyR10WrNMIc4NSejxFf7pfsC-Xuxc8RXoYOKq_2x3b1oAGQ"
-    }
-  ]
-}--- sign token
-cmZpZWxkaW5nLTE.IJzgfNjCrIUgPqdKSxprgYevIiudOwcUKi7TNlU7G0dvy7mssngXPaOAasZmjv5LPD6ixnGluVqlHMm4VPr8w40wYR7Kg0zgz8v8Hz_NzX1XHg.XC1oXdIOmoqikKGUPcRpvumqXPvikFyz2AyY2sOY01U8--O7y7yvJwkpeLKqvv66SoD3eEYB0NRXlKA8AEykLYpknq3lWy6IznuIQV7Hss48xGMH0xqJx0PuSaO8n_yQdZBPJE5wfADOnAR9zyAPEA4_skxnGWx1gxUtRUQFfpPF5iWj36kUCUUCWY1z_CsH3ze8vr0R3D7q0pMqyNV-7k05RdyL9FmRiEodZSik5w1BDGJl3XkSJ2j1Z8xSKySmWQupTWHzmH2W3eMOrgRnVAx8-DU-pNE8P3isJW6BG3fpiIF4-qFp4UWNwWCKL0tP6MbNK0IrqxpdEQxQtX3FwQ
---- verify token
-{
-  "age": [
-    "adult"
-  ],
-  "exp": 1657777084,
-  "kid": "rfielding-1"
-}
-```
+![testShot.png](testShot.png)
