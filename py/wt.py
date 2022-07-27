@@ -1,4 +1,7 @@
-# pip3 install cryptography
+# format automatically:
+#   pip3 install git+https://github.com/psf/black; black wt.py
+# install cryptography
+#   pip3 install cryptography
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import sys
 import argparse
