@@ -237,11 +237,11 @@ func RSA(b *big.Int, x *big.Int, n *big.Int) *big.Int {
 }
 
 /*
-  CreateToken with a given CA JWK (that has secret keys in it, the D value in RSA)
-  - must not be an array input type
-  - an exp value must be inserted, with the date calculated for us already
-  - the kid value must be inserted into the claims
-  - WE will create the byte array from claims.
+CreateToken with a given CA JWK (that has secret keys in it, the D value in RSA)
+- must not be an array input type
+- an exp value must be inserted, with the date calculated for us already
+- the kid value must be inserted into the claims
+- WE will create the byte array from claims.
 */
 func CreateToken(keys *JWKeys, kid string, exp int64, claimsObject interface{}) (string, error) {
 	// We round-trip marshalling, so that the claimsObject can be any kind of json object we like as input
@@ -344,7 +344,7 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) 
 	)
 
 	// If V is larger than a sha256 hash, then it can't be genuine!
-	if len(V.Bytes()) > 64 {
+	if len(V.Bytes()) > 32 {
 		return nil, fmt.Errorf("Signature is invalid")
 	}
 
