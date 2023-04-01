@@ -53,12 +53,12 @@ def wt_extract_claims(trust: any, token: str) -> str:
         n = rsakey["Nint"]
         e = rsakey["Eint"]
         V = pow(sig, e, n)
-        k = (V ^ HE).to_bytes(32, byteorder="big")
+        k = (V ^ HE).to_bytes(int(rsakey["bits"]/16), byteorder="big")
         # It has a 12 byte nonce when encrypted, appended
         # note that the key k is never reused
         nonce = ciphertextunderk[0:12]
         ciphertextonly = ciphertextunderk[12:]
-        aesgcm = AESGCM(k)
+        aesgcm = AESGCM(k[0:32])
         plaintext = aesgcm.decrypt(nonce, ciphertextonly, None).decode("utf-8")
         return plaintext  # will be valid json map
     return "ERROR: no rsakey found for %s" % (kid)

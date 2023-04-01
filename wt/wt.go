@@ -267,8 +267,14 @@ func CreateToken(keys *JWKeys, kid string, exp int64, claimsObject interface{}) 
 		return "", fmt.Errorf("Unable to marshal plaintext: %v", err)
 	}
 
-	// Create a fresh random AES key
-	k := make([]byte, 32)
+	// Sign V
+	theKey, ok := keys.KeyMap[kid]
+	if !ok {
+		return "", fmt.Errorf("Unable to find kid %s", kid)
+	}
+
+	// Create a fresh random key
+	k := make([]byte, theKey.Bits/16)
 	_, err = io.ReadFull(rand.Reader, k)
 	if err != nil {
 		return "", fmt.Errorf("Unable to create a fresh random witness key: %v", err)
@@ -289,11 +295,6 @@ func CreateToken(keys *JWKeys, kid string, exp int64, claimsObject interface{}) 
 		new(big.Int).SetBytes(HE),
 	)
 
-	// Sign V
-	theKey, ok := keys.KeyMap[kid]
-	if !ok {
-		return "", fmt.Errorf("Unable to find kid %s", kid)
-	}
 	Sig := RSA(V, theKey.Dint, theKey.Nint)
 
 	// This token is kind of similar to a JWT in appearance.
@@ -343,13 +344,8 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) 
 		theKey.Nint,
 	)
 
-	// If V is larger than a sha256 hash, then it can't be genuine!
-	if len(V.Bytes()) > 32 {
-		return nil, fmt.Errorf("Signature is invalid")
-	}
-
 	// Extract the key that proves that we checked the signature
-	k := make([]byte, 32)
+	k := make([]byte, theKey.Bits/16)
 	new(big.Int).Xor(V, HE).FillBytes(k)
 
 	// We now can decrypt claims
