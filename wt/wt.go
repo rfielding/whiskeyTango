@@ -275,7 +275,7 @@ func CreateToken(keys *JWKeys, kid string, exp int64, claimsObject interface{}) 
 	}
 
 	// Generate the ciphertext E
-	E, err := Encrypt(k, j)
+	E, err := Encrypt(k[0:32], j)
 	if err != nil {
 		return "", fmt.Errorf("failed to encrypt plaintext claims: %s", c)
 	}
@@ -353,7 +353,7 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) 
 	new(big.Int).Xor(V, HE).FillBytes(k)
 
 	// We now can decrypt claims
-	claims, err := Decrypt(k, ciphertextWithNonce)
+	claims, err := Decrypt(k[0:32], ciphertextWithNonce)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to decrypt claims: %v", err)
 	}
