@@ -211,7 +211,7 @@ flowchart TB
   AESGCM[[AESGCM]]
   APPENDB64WithDots[[kid.ciphertextunderk.sig]]
   plaintext-- claims -->AESGCM
-  k-- fresh random 2040 bit secret witness lower 256 bits  -->AESGCM
+  k-- fresh random 2040 bit secret witness lower 256 bits -->AESGCM
   AESGCM-- decrypted upon proof of verification -->ciphertextunderk
   kid-- globally unique key identifier -->APPENDB64WithDots
   ciphertextunderk-- claims to decrypt -->APPENDB64WithDots
@@ -223,9 +223,9 @@ flowchart TB
   n-- modulus -->Sign
   d-- use private signing key -->Sign
   Sha256-- Sha256 ciphertextunderk -->HE
-  HE-- Sign hashed ciphertext  -->XOR
+  HE-- Sign hashed ciphertext -->XOR
   k-- mix in key to recover -->XOR
-  XOR-- XOR HE (256 bits) k (2040 bits) -->V
+  XOR-- XOR HE of 256 bits and k 2040 bits -->V
   V-- XOR with HE to recover k -->Sign
   Sign-- V^d mod n -->sig
   sig-- append signature into token -->APPENDB64WithDots
