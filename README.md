@@ -224,7 +224,7 @@ flowchart TB
   d-- use private signing key -->Sign
   Sha256-- Sha256 ciphertextunderk -->HE
   HE-- Sign hashed ciphertext -->XOR
-  k-- mix in key to recover -->XOR
+  k-- mix in 2040 bit data to recover -->XOR
   XOR-- XOR HE of 256 bits and k 2040 bits -->V
   V-- XOR with HE to recover k -->Sign
   Sign-- V^d mod n -->sig
