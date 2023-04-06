@@ -252,7 +252,7 @@ flowchart TB
   XOR[[XOR]]
   V-- witness that we verified signature -->XOR
   HE-- witness that we hashed the ciphertext -->XOR
-  XOR-- witness to following protocol -->k
+  XOR-- witness to following protocol lower 256 bits -->k
   AESGCM[[AESGCM]]
   ciphertextunderk-- claims to recover -->AESGCM  
   k-- witness decrypts plaintext claims -->AESGCM  
