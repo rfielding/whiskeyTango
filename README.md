@@ -229,7 +229,7 @@ flowchart TB
   sig-- append signature into token -->APPENDB64WithDots
 ```
 
-> Note: we use a subset of k, the lower 32 bytes to do the encryption. We make k, a random value, as large as possible. In this case, it's the number of RSA bits divided by 16. Apparently, textbook RSA has a security problem when we exponentiate a small number.  So 256 bytes rather than 32 bytes works. It is yet to be seen if the larger random key is actually better for security.
+> Note: we use a subset of k, the lower 32 bytes to do the encryption. We make k, a random value, as large as possible. In this case, it's the number of RSA prime bits divided by 8, to get the number of bytes to represent such a large prime; minus one byte. ie: RSA 2048, using a k of 2047 bits
 
 ### Verify a token
 
