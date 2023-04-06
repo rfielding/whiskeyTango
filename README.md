@@ -204,12 +204,14 @@ We want a foolproof way of checking, such that if the client can even manage to 
 > Note that this is almost the same thing as just verifying the hash of the ciphertext.
 But we can't use `HE = k` and removing the `XOR` for this purpose, because you can calculate `HE` without actually verifying the signature. An `XOR` with `k` prevents skipping the signature check, as this signature check generates a witness rather than relying on an honest result of a comparison.
 
+Assuming 2048 bit primes. Note that k has 8 fewer bits.
+
 ```mermaid
 flowchart TB
   AESGCM[[AESGCM]]
   APPENDB64WithDots[[kid.ciphertextunderk.sig]]
   plaintext-- claims -->AESGCM
-  k-- fresh random secret witness -->AESGCM
+  k-- fresh random 2040 bit secret witness lower 256 bits  --> AESGCM
   AESGCM-- decrypted upon proof of verification -->ciphertextunderk
   kid-- globally unique key identifier -->APPENDB64WithDots
   ciphertextunderk-- claims to decrypt -->APPENDB64WithDots
@@ -223,7 +225,7 @@ flowchart TB
   Sha256-- Sha256 ciphertextunderk -->HE
   HE-- Sign hashed ciphertext  -->XOR
   k-- mix in key to recover -->XOR
-  XOR-- XOR HE k -->V
+  XOR-- XOR HE (256 bits) k (2040 bits) -->V
   V-- XOR with HE to recover k -->Sign
   Sign-- V^d mod n -->sig
   sig-- append signature into token -->APPENDB64WithDots
