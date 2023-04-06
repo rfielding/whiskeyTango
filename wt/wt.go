@@ -274,7 +274,7 @@ func CreateToken(keys *JWKeys, kid string, exp int64, claimsObject interface{}) 
 	}
 
 	// Create a fresh random key
-	k := make([]byte, theKey.Bits/8)
+	k := make([]byte, theKey.Bits/8-1)
 	_, err = io.ReadFull(rand.Reader, k)
 	if err != nil {
 		return "", fmt.Errorf("Unable to create a fresh random witness key: %v", err)
@@ -345,7 +345,7 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) 
 	)
 
 	// Extract the key that proves that we checked the signature
-	k := make([]byte, theKey.Bits/8)
+	k := make([]byte, theKey.Bits/8-1)
 	new(big.Int).Xor(V, HE).FillBytes(k)
 
 	// We now can decrypt claims

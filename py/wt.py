@@ -53,7 +53,7 @@ def wt_extract_claims(trust: any, token: str) -> str:
         n = rsakey["Nint"]
         e = rsakey["Eint"]
         V = pow(sig, e, n)
-        k = (V ^ HE).to_bytes(int(rsakey["bits"]/8), byteorder="big")
+        k = (V ^ HE).to_bytes(int(rsakey["bits"]/8-1), byteorder="big")
         # It has a 12 byte nonce when encrypted, appended
         # note that the key k is never reused
         nonce = ciphertextunderk[0:12]
