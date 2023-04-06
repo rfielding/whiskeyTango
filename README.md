@@ -211,7 +211,7 @@ flowchart TB
   AESGCM[[AESGCM]]
   APPENDB64WithDots[[kid.ciphertextunderk.sig]]
   plaintext-- claims -->AESGCM
-  k-- fresh random 2040 bit secret witness lower 256 bits  --> AESGCM
+  k-- fresh random 2040 bit secret witness lower 256 bits  -->AESGCM
   AESGCM-- decrypted upon proof of verification -->ciphertextunderk
   kid-- globally unique key identifier -->APPENDB64WithDots
   ciphertextunderk-- claims to decrypt -->APPENDB64WithDots
