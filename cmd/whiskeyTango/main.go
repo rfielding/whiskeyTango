@@ -17,7 +17,50 @@ import (
 	"github.com/rfielding/whiskeyTango/wt"
 )
 
-func Verify(keys *wt.JWKeys, nonce string) {
+func Prove(keypairName string, challenge string) {
+	var challengeInt big.Int
+	challengeInt.SetBytes([]byte(challenge))
+
+	kPair := ReadKeyPair(keypairName)
+	responseInt := wt.RSA(&challengeInt, kPair.D, kPair.PublicKey.N)
+	response := hex.EncodeToString(responseInt.Bytes())
+	fmt.Printf("%s", response)
+}
+
+func Challenge(keys *wt.JWKeys, challenge string) {
+	scanner := bufio.NewScanner(os.Stdin)
+	if !scanner.Scan() {
+		log.Printf("Failed to read: %v", scanner.Err())
+		return
+	}
+	input := scanner.Bytes()
+
+	validClaims, err := wt.GetValidClaims(keys, time.Now().Unix(), string(input))
+	if err != nil {
+		panic(fmt.Sprintf("Cannot validate claims: %v\n%s", err, string(input)))
+	}
+	// calculate: challengeInt^E mod N
+	publicKeyE, okE := validClaims["publicKeyE"]
+	publicKeyN, okN := validClaims["publicKeyN"]
+	if okE && okN {
+
+		bE, _ := hex.DecodeString(publicKeyE.(string))
+		var E big.Int
+		E.SetBytes(bE)
+
+		bN, _ := hex.DecodeString(publicKeyN.(string))
+		var N big.Int
+		N.SetBytes(bN)
+
+		var challengeInt big.Int
+		challengeInt.SetBytes([]byte(challenge))
+
+		C := wt.RSA(&challengeInt, &E, &N)
+		fmt.Printf("%s\n", hex.EncodeToString(C.Bytes()))
+	}
+}
+
+func Verify(keys *wt.JWKeys) {
 	scanner := bufio.NewScanner(os.Stdin)
 	if !scanner.Scan() {
 		log.Printf("Failed to read: %v", scanner.Err())
@@ -210,7 +253,8 @@ func main() {
 	verify := flag.Bool("verify", false, "Verify a token")
 	minutes := flag.Int64("minutes", 20, "Expiration in minutes")
 	kid := flag.String("kid", "", "kid to issue")
-	nonce := flag.String("nonce", "", "a nonce to challenge token owner with")
+	challenge := flag.String("challenge", "", "challenge token owner to prove ownership")
+	prove := flag.String("prove", "", "prove to challenger that token is owned")
 	flag.Parse()
 
 	if len(*ca) > 0 {
@@ -233,13 +277,21 @@ func main() {
 			return
 		}
 		if *verify {
-			Verify(keys, *nonce)
+			Verify(keys)
+			return
+		}
+		if len(*challenge) > 0 {
+			Challenge(keys, *challenge)
 			return
 		}
 	}
 	if len(*kp) > 0 && len(*show) > 0 {
 		privateKey := ReadKeyPair(*kp)
 		fmt.Printf("%s\n", wt.AsJson(privateKey))
+		return
+	}
+	if len(*prove) > 0 && len(*kp) > 0 {
+		Prove(*kp, *prove)
 		return
 	}
 	if len(*kp) > 0 {
