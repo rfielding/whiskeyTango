@@ -395,3 +395,25 @@ The output when run looks like this:
 ![testShot.png](testShot.png)
 
 The Python and Go implementations of token validation are in here.
+
+## Certificates
+
+A certificate is similar to a JWT that signs in a public key.
+So, we can sign in a pubilc key that is hex encoded N and E
+for a new keypair. We can then hash this JWT to locate the private key.
+
+```json
+{
+  "age": [
+    "adult"
+  ],
+  "email": [
+    "rob.fielding@gmail.com",
+    "rrr00bb@yahoo.com"
+  ],
+  "exp": 1701319594,
+  "kid": "rfielding-1",
+  "publicKeyE": "010001",
+  "publicKeyN": "c9d3f38e5003ab215fa2a9fd6d429f3db08b7467edbdc5e55aa1e764610884a8f7e8f98e931454375323bcbeb31bc8f829d32e2b6f83f0c0190aa4f2eb22eef74ae2eb470b6f74f65886b4d619e3071640a72b922080a700f12f05bc93021506ac924122e2e2a6948921cb19cab0ad00f2b2d6c521fb843a507f3aec5811f77ecb072f06d1279cb6658fd5c87ff7e5b40dec02ec0e2a366f1512c988b336fbca718081338cc8ddd5074bfccc4f2a951e7404ca05afa5ae06d5562e126456407c32b296847701fb601f8f6c34df8dba6dc8b71ab5acb1a0c8d3a28abd906b6b46305124230ded653040310d6ed37fbb49cd6bf9e842902e8a4f14f8b578a1fd87"
+}
+```

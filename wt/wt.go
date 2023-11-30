@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -243,7 +244,14 @@ CreateToken with a given CA JWK (that has secret keys in it, the D value in RSA)
 - the kid value must be inserted into the claims
 - WE will create the byte array from claims.
 */
-func CreateToken(keys *JWKeys, kid string, exp int64, claimsObject interface{}) (string, error) {
+func CreateToken(
+	keys *JWKeys,
+	kid string,
+	exp int64,
+	claimsObject interface{},
+	publicKey *rsa.PublicKey,
+	publicKeyName string,
+) (string, error) {
 	// We round-trip marshalling, so that the claimsObject can be any kind of json object we like as input
 	claimsMarshalled, err := json.Marshal(claimsObject)
 	if err != nil {
@@ -262,6 +270,11 @@ func CreateToken(keys *JWKeys, kid string, exp int64, claimsObject interface{}) 
 	// We can set exp, kid no matter what fields exist on claimsObject
 	c["exp"] = exp
 	c["kid"] = kid
+	if publicKey != nil {
+		c["publicKeyN"] = hex.EncodeToString(publicKey.N.Bytes())
+		c["publicKeyE"] = hex.EncodeToString(big.NewInt(int64(publicKey.E)).Bytes())
+		c["publicKeyName"] = publicKeyName
+	}
 	j, err := json.Marshal(c)
 	if err != nil {
 		return "", fmt.Errorf("Unable to marshal plaintext: %v", err)
@@ -307,7 +320,7 @@ func CreateToken(keys *JWKeys, kid string, exp int64, claimsObject interface{}) 
 }
 
 // Extract claims from token.
-func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) {
+func GetValidClaims(keys *JWKeys, now int64, token string) (map[string]interface{}, error) {
 	tokenParts := strings.Split(token, ".")
 	if len(tokenParts) != 3 {
 		return nil, fmt.Errorf("Expected 3 token parts, got %d", len(tokenParts))
@@ -332,7 +345,7 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) 
 
 	theKey, ok := keys.KeyMap[kid]
 	if !ok {
-		return "", fmt.Errorf("Unable to find kid %s", kid)
+		return nil, fmt.Errorf("Unable to find kid %s", kid)
 	}
 	// We need a hash of the ciphertext, as proof that we checked it
 	HE := new(big.Int).SetBytes(H(ciphertextWithNonce))
@@ -354,18 +367,14 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (interface{}, error) 
 		return nil, fmt.Errorf("Unable to decrypt claims: %v", err)
 	}
 
-	var result interface{}
+	var result map[string]interface{}
 	err = json.Unmarshal(claims, &result)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to unmarshal decrypted claims: %v", err)
 	}
 
 	// check the expiration
-	top, ok := result.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("Unable to verify claims because they are not a struct at top level: %v", err)
-	}
-	exp2, ok := top["exp"].(float64)
+	exp2, ok := result["exp"].(float64)
 	if !ok {
 		return nil, fmt.Errorf("Cannot check exp date: %v", err)
 	}
