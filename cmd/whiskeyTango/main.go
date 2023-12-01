@@ -18,13 +18,15 @@ import (
 )
 
 func Prove(keypairName string, challenge string) {
-	var challengeInt big.Int
-	challengeInt.SetBytes([]byte(challenge))
+	challengeBytes, err := hex.DecodeString(challenge)
+	if err != nil {
+		panic(fmt.Sprintf("unable to hex decode challenge: %v", err))
+	}
+	var challengeInt = (&big.Int{}).SetBytes(challengeBytes)
 
 	kPair := ReadKeyPair(keypairName)
-	responseInt := wt.RSA(&challengeInt, kPair.D, kPair.PublicKey.N)
-	response := hex.EncodeToString(responseInt.Bytes())
-	fmt.Printf("%s", response)
+	responseInt := wt.RSA(challengeInt, kPair.D, kPair.PublicKey.N)
+	fmt.Printf("%s", string(responseInt.Bytes()))
 }
 
 func Challenge(keys *wt.JWKeys, challenge string) {
@@ -40,22 +42,25 @@ func Challenge(keys *wt.JWKeys, challenge string) {
 		panic(fmt.Sprintf("Cannot validate claims: %v\n%s", err, string(input)))
 	}
 	// calculate: challengeInt^E mod N
-	publicKeyE, okE := validClaims["publicKeyE"]
-	publicKeyN, okN := validClaims["publicKeyN"]
-	if okE && okN {
+	publicKeyE, okE := validClaims["publicKeyE"].(string)
+	publicKeyN, okN := validClaims["publicKeyN"].(string)
+	if okE && len(publicKeyE) > 0 && okN && len(publicKeyN) > 0 {
 
-		bE, _ := hex.DecodeString(publicKeyE.(string))
-		var E big.Int
-		E.SetBytes(bE)
+		bE, err := hex.DecodeString(publicKeyE)
+		if err != nil {
+			panic(fmt.Sprintf("unable to unpack E: %v", err))
+		}
+		E := (&big.Int{}).SetBytes(bE)
 
-		bN, _ := hex.DecodeString(publicKeyN.(string))
-		var N big.Int
-		N.SetBytes(bN)
+		bN, err := hex.DecodeString(publicKeyN)
+		if err != nil {
+			panic(fmt.Sprintf("unable to unpack N: %v", err))
+		}
+		N := (&big.Int{}).SetBytes(bN)
 
-		var challengeInt big.Int
-		challengeInt.SetBytes([]byte(challenge))
+		challengeInt := (&big.Int{}).SetBytes([]byte(challenge))
 
-		C := wt.RSA(&challengeInt, &E, &N)
+		C := wt.RSA(challengeInt, E, N)
 		fmt.Printf("%s\n", hex.EncodeToString(C.Bytes()))
 	}
 }
@@ -242,6 +247,28 @@ func MakeCA(kid string, bits int, smalle bool) {
 }
 
 func main() {
+	/*
+		WriteNewKeyPair("robfielding.kp", 1024)
+		theKeys := ReadKeyPair("robfielding.kp")
+		test := "hi"
+		E := big.NewInt(int64(theKeys.E))
+		D := theKeys.D
+		N := theKeys.PublicKey.N
+		R := wt.RSA(
+			(&big.Int{}).SetBytes([]byte(test)),
+			E,
+			N,
+		)
+		R2 := wt.RSA(
+			R,
+			D,
+			N,
+		)
+		fmt.Printf("%s vs %s", test, string(R2.Bytes()))
+		if true {
+			return
+		}
+	*/
 	kp := flag.String("kp", "", "RSA keypair filename")
 	show := flag.String("show", "", "show what is being read")
 	ca := flag.String("ca", "", "CA signing json jwk")

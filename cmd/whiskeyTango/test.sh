@@ -41,7 +41,8 @@ echo --- verify token from golang
 cat token.wt | ./wt -ca trusted.jwk -verify > claims.json
 cat claims.json | $jq
 
-#echo -- challenge the owner of this token to prove ownership
-#cat token.wt | ./wt -ca trusted.jwk -challenge squeamishossifrage > claims.challenge
-#./wt -kp robfielding.kp -prove $(cat claims.challenge)
+echo -- challenge the owner of this token to prove ownership
+cat token.wt | ./wt -ca trusted.jwk -challenge squeamishossifrage > claims.challenge
+./wt -kp robfielding.kp -prove $(cat claims.challenge)
+echo
 )
