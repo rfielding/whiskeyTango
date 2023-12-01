@@ -402,7 +402,12 @@ A certificate is similar to a JWT that signs in a public key.
 So, we can sign in a pubilc key that is hex encoded N and E
 for a new keypair. We can then hash this JWT to locate the private key.
 
-```json
+```
+--- make keypair for robfielding
+--- sign token
+aHR0cHM6Ly9yZmllbGRpbmcubmV0L2NhLTE.KVRp_BIORpwkqw7XcpZPAu3XXCmolGsfaLYaOFPyVUFDOynTvyeoAnwR_UG0DkSMlV8d9-c-tzZcTlwPIxVodkBP49lBDsAB54d7o05VJ_Lgc3M1V-rGKUpqv7X-fHe1cDLBQCBws3HtVS01vVMf3BiIxnPJ72IeEJAiodWcy_49L5loxcvOlQOvV0kH1KMQzypisHYiKZ2xJgHAYgsykgqhMo6YsUMm9P77DUOE8vDu9z2nPq1-EJXqIMH7o4nLQ2355Bz7lESg59t001b2b4mEeWn9AKOFwNZF3JsQKnOOjRx9v502hJFG4en0NAaoRrNM4eem_YU1e-V7Pm4wlWuT9dLCSO8id5kXHnunIrXa2eHBW-ayiqKszVMaNmMYcJFn9fIkeV5Fh9MMownNkSKxWW8fPFAldNdkFbbU6FzjlsgmyzklCHgiFu2L5t76w9RVjkmNCpHPbszHEEAI_Y3PF6447T_GFM9qd3attdtCKqsPeSQVa7cZSdNMDv2Y06E_8h5RIsiaIvKeQR5wkvAarq7IlBJgzR2jZm-UwLfG_hX-WyYQBN6zzJz_jcsS6cBrwPsEoRqPZtwqFkCfWOu29ob5IGHuRBLz9nNAKfWUsZDUjnn5Z0N31j_eFnI.X5lmeKiHnTJVI0eH_7f5Z_WV7WaByVfjR914YhWICCP1e-M4hTtWAEiRBG2q3Vfz8ydEETpqJ6MfKYUD3yXDfWctiHV58cVC4YIi-PCHGZpRRL3dlMrWqYApKcg9u_p4U9nABJFWzj7d59RPAhW_VubVKhQkmTKX3JvuqYg2rY8
+
+--- verify token from golang
 {
   "age": [
     "adult"
@@ -411,9 +416,15 @@ for a new keypair. We can then hash this JWT to locate the private key.
     "rob.fielding@gmail.com",
     "rrr00bb@yahoo.com"
   ],
-  "exp": 1701319594,
-  "kid": "rfielding-1",
+  "exp": 1701442963,
+  "kid": "https://rfielding.net/ca-1",
   "publicKeyE": "010001",
-  "publicKeyN": "c9d3f38e5003ab215fa2a9fd6d429f3db08b7467edbdc5e55aa1e764610884a8f7e8f98e931454375323bcbeb31bc8f829d32e2b6f83f0c0190aa4f2eb22eef74ae2eb470b6f74f65886b4d619e3071640a72b922080a700f12f05bc93021506ac924122e2e2a6948921cb19cab0ad00f2b2d6c521fb843a507f3aec5811f77ecb072f06d1279cb6658fd5c87ff7e5b40dec02ec0e2a366f1512c988b336fbca718081338cc8ddd5074bfccc4f2a951e7404ca05afa5ae06d5562e126456407c32b296847701fb601f8f6c34df8dba6dc8b71ab5acb1a0c8d3a28abd906b6b46305124230ded653040310d6ed37fbb49cd6bf9e842902e8a4f14f8b578a1fd87"
+  "publicKeyN": "d8a74ce1e86f10fa2bc564b16eb43be54746f3f03783f031e1a2b0af790eb87c8b9bd7594082f9f5cc3bc169b39c25460563e546ad9c47c63ab6a75bbbba5f4c66c14fbd1c9687709b91cfce9bce18d9fba3f68a2cdc3d6ce720d39221a778e3530196e6238c9bc3512ec9ba480c959f562fbe5f496572055ef2712aaf0aa04f",
+  "publicKeyName": "robfielding.kp"
 }
+-- challenge the owner of this token to prove ownership
+---- Create a challenge to prove ownership of this token
+b647a5b6062daf63350221a37e5946a6b5ce732f1564ab2dc58322e207e6982c5550b10863e7d3f37839a3301804175599a5efda3ca1e6a93070816dad5e78d28cb462b28c6de820003300b1da8b7ba0ce24ded4bd29d512f224b793be41890fa9323be50a0122455de8b2b42dafaba5b5dc0839d9634b025482c417589e1d41
+---- Verify the proof by getting back the secret phrase
+squeamishossifrage
 ```
