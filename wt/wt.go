@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -415,14 +416,15 @@ import (
 
 func Prove(keypairName string, challenge string) error {
 	challengeBytes, err := hex.DecodeString(challenge)
+	task := fmt.Errorf("Prove ownership of keypair")
 	if err != nil {
-		return fmt.Errorf("unable to hex decode challenge: %v", err)
+		return errors.Join(task, err)
 	}
 	var challengeInt = (&big.Int{}).SetBytes(challengeBytes)
 
 	kPair, err := ReadKeyPair(keypairName)
 	if err != nil {
-		return err
+		return errors.Join(task, err)
 	}
 	responseInt := RSA(challengeInt, kPair.D, kPair.PublicKey.N)
 	fmt.Printf("%s", string(responseInt.Bytes()))
@@ -430,15 +432,20 @@ func Prove(keypairName string, challenge string) error {
 }
 
 func Challenge(keys *JWKeys, challenge string) error {
+	task := fmt.Errorf("Challenge token owner")
 	scanner := bufio.NewScanner(os.Stdin)
 	if !scanner.Scan() {
-		return fmt.Errorf("Failed to read: %v", scanner.Err())
+		return errors.Join(task, scanner.Err())
 	}
 	input := scanner.Bytes()
 
 	validClaims, err := GetValidClaims(keys, time.Now().Unix(), string(input))
 	if err != nil {
-		return fmt.Errorf("Cannot validate claims: %v\n%s", err, string(input))
+		return errors.Join(
+			task,
+			fmt.Errorf("Cannot validate claims: %s", string(input)),
+			err,
+		)
 	}
 	// calculate: challengeInt^E mod N
 	encryptPublic := validClaims["encryptPublic"].(map[string]interface{})
@@ -448,13 +455,21 @@ func Challenge(keys *JWKeys, challenge string) error {
 
 		bE, err := hex.DecodeString(publicKeyE)
 		if err != nil {
-			return fmt.Errorf("unable to unpack E: %v", err)
+			return errors.Join(
+				task,
+				fmt.Errorf("unable to unpack E"),
+				err,
+			)
 		}
 		E := (&big.Int{}).SetBytes(bE)
 
 		bN, err := hex.DecodeString(publicKeyN)
 		if err != nil {
-			return fmt.Errorf("unable to unpack N: %v", err)
+			return errors.Join(
+				task,
+				fmt.Errorf("unable to unpack N"),
+				err,
+			)
 		}
 		N := (&big.Int{}).SetBytes(bN)
 
@@ -468,14 +483,23 @@ func Challenge(keys *JWKeys, challenge string) error {
 
 func Verify(keys *JWKeys) error {
 	scanner := bufio.NewScanner(os.Stdin)
+	task := fmt.Errorf("Verify keys")
 	if !scanner.Scan() {
-		return fmt.Errorf("Failed to read: %v", scanner.Err())
+		return errors.Join(
+			task,
+			fmt.Errorf("Failed to read"),
+			scanner.Err(),
+		)
 	}
 	input := scanner.Bytes()
 
 	validClaims, err := GetValidClaims(keys, time.Now().Unix(), string(input))
 	if err != nil {
-		return fmt.Errorf("Cannot validate claims: %v\n%s", err, string(input))
+		return errors.Join(
+			task,
+			fmt.Errorf("cannot validate claims %s", string(input)),
+			err,
+		)
 	}
 	fmt.Printf("%s\n", AsJson(validClaims))
 	return nil
@@ -484,48 +508,80 @@ func Verify(keys *JWKeys) error {
 func KeyPair(bits int) (*rsa.PrivateKey, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to generate RSA Keypair: %v", err)
+		return nil, errors.Join(
+			fmt.Errorf("Keypair unable to generate"),
+			err,
+		)
 	}
 	return priv, nil
 }
 
 func ReadKeyPair(name string) (*rsa.PrivateKey, error) {
 	d, err := os.ReadFile(name)
+	task := fmt.Errorf("ReadKeyPair %s", name)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read file %s: %v", name, err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("read file"),
+			err,
+		)
 	}
 	j := make(map[string]string)
 	err = json.Unmarshal(d, &j)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read %s: %v", name, err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("unable to unmarshal"),
+			err,
+		)
 	}
 	bD, err := hex.DecodeString(j["D"])
 	if err != nil {
-		return nil, fmt.Errorf("could not decode D from %s: %v", name, err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("decode string"),
+			err,
+		)
 	}
 	D := big.NewInt(0).SetBytes(bD)
 
 	bP, err := hex.DecodeString(j["P"])
 	if err != nil {
-		return nil, fmt.Errorf("could not decode P from %s: %v", name, err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("could not decode P"),
+			err,
+		)
 	}
 	P := big.NewInt(0).SetBytes(bP)
 
 	bQ, err := hex.DecodeString(j["Q"])
 	if err != nil {
-		return nil, fmt.Errorf("could not decode Q from %s: %v", name, err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("could not decode Q"),
+			err,
+		)
 	}
 	Q := big.NewInt(0).SetBytes(bQ)
 
 	bN, err := hex.DecodeString(j["publicKeyN"])
 	if err != nil {
-		return nil, fmt.Errorf("could not decode N from %s: %v", name, err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("could not decode N"),
+			err,
+		)
 	}
 	N := big.NewInt(0).SetBytes(bN)
 
 	bE, err := hex.DecodeString(j["publicKeyE"])
 	if err != nil {
-		return nil, fmt.Errorf("could not decode E from %s: %v", name, err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("decode E"),
+			err,
+		)
 	}
 	E := big.NewInt(0).SetBytes(bE)
 
@@ -542,9 +598,14 @@ func ReadKeyPair(name string) (*rsa.PrivateKey, error) {
 }
 
 func WriteNewKeyPair(name string, bits int) error {
+	task := fmt.Errorf("write keypair %s %d bit", name, bits)
 	kp, err := KeyPair(bits)
 	if err != nil {
-		return err
+		return errors.Join(
+			task,
+			fmt.Errorf("RSA keypair"),
+			err,
+		)
 	}
 	data := make(map[string]string)
 	data["publicKeyE"] = hex.EncodeToString(
@@ -564,32 +625,53 @@ func WriteNewKeyPair(name string, bits int) error {
 	)
 	j, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		return fmt.Errorf("error making keypair %s: %v", name, err)
+		return errors.Join(
+			task,
+			fmt.Errorf("marshal"),
+			err,
+		)
 	}
 	err = os.WriteFile(name, j, 0700)
 	if err != nil {
-		return fmt.Errorf("error writing keypair %s: %v", name, err)
+		return errors.Join(
+			task,
+			fmt.Errorf("write file"),
+			err,
+		)
 	}
 	return nil
 }
 
 func Sign(keys *JWKeys, kid string, minutes int64, keypairName string) error {
+	task := fmt.Errorf("Sign %s", kid)
 	scanner := bufio.NewScanner(os.Stdin)
 	if !scanner.Scan() {
-		return fmt.Errorf("Failed to read: %v", scanner.Err())
+		return errors.Join(
+			task,
+			fmt.Errorf("scan"),
+			scanner.Err(),
+		)
 	}
 	input := scanner.Bytes()
 	var claims map[string]interface{}
 	err := json.Unmarshal(input, &claims)
 	if err != nil {
-		return fmt.Errorf("Could not parse claims")
+		return errors.Join(
+			task,
+			fmt.Errorf("unmarshal"),
+			err,
+		)
 	}
 
 	var pub *rsa.PublicKey
 	if len(keypairName) > 0 {
 		priv, err := ReadKeyPair(keypairName)
 		if err != nil {
-			return err
+			return errors.Join(
+				task,
+				fmt.Errorf("read key pair"),
+				err,
+			)
 		}
 		pub = &priv.PublicKey
 	}
@@ -604,24 +686,37 @@ func Sign(keys *JWKeys, kid string, minutes int64, keypairName string) error {
 		keypairName,
 	)
 	if err != nil {
-		return fmt.Errorf("Could not create token: %v", err)
+		return errors.Join(
+			task,
+			fmt.Errorf("create token"),
+			err,
+		)
 	}
 	fmt.Printf("%s\n", t)
 	return nil
 }
 
 func LoadCA(f string) (*JWKeys, error) {
+	task := fmt.Errorf("load ca %s", f)
 	keys := &JWKeys{}
 	if _, err := os.Stat(f); os.IsNotExist(err) {
 		return keys, nil
 	}
 	b, err := os.ReadFile(f)
 	if err != nil {
-		return keys, fmt.Errorf("Could not read CA: %v", err)
+		return keys, errors.Join(
+			task,
+			fmt.Errorf("read file"),
+			err,
+		)
 	}
 	keys, err = ParseJWK(b)
 	if err != nil {
-		return keys, fmt.Errorf("Unable to parse JWK: %v", err)
+		return keys, errors.Join(
+			task,
+			fmt.Errorf("parse jwk"),
+			err,
+		)
 	}
 	return keys, nil
 }
@@ -630,12 +725,16 @@ func StoreCA(f string, keys *JWKeys) error {
 	cajson := AsJson(keys)
 	err := os.WriteFile(f, []byte(cajson), 0600)
 	if err != nil {
-		return fmt.Errorf("Could not write CA: %v", err)
+		return errors.Join(
+			fmt.Errorf("store ca"),
+			err,
+		)
 	}
 	return nil
 }
 
 func MakeCA(kid string, bits int, smalle bool) error {
+	task := fmt.Errorf("make ca")
 	keys := &JWKeys{}
 	keys.AddRSA(kid, bits, smalle)
 
@@ -643,7 +742,11 @@ func MakeCA(kid string, bits int, smalle bool) error {
 	f := fmt.Sprintf("%s-sign.json", kid)
 	err := os.WriteFile(f, []byte(caJson), 0600)
 	if err != nil {
-		return fmt.Errorf("Could not write CA: %v", err)
+		return errors.Join(
+			task,
+			fmt.Errorf("write file %s", f),
+			err,
+		)
 	}
 
 	caJson = keys.KeyMap[kid].AsJsonPrivate()
@@ -651,7 +754,11 @@ func MakeCA(kid string, bits int, smalle bool) error {
 	f = fmt.Sprintf("%s-verify.json", kid)
 	err = os.WriteFile(f, []byte(caJson), 0600)
 	if err != nil {
-		return fmt.Errorf("Could not write CA: %v", err)
+		return errors.Join(
+			task,
+			fmt.Errorf("write file %s", f),
+			err,
+		)
 	}
 	return nil
 }
