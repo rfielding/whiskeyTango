@@ -1,6 +1,7 @@
 package wt
 
 import (
+	"bufio"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -9,11 +10,14 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"math/big"
+	"os"
 	"strings"
+	"time"
 )
 
 // Do not use pointers to these!  Copies will be modified to blank out CA data
@@ -386,4 +390,337 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (map[string]interface
 	}
 
 	return result, nil
+}
+
+/*
+package wt
+
+import (
+	"bufio"
+	"crypto/rand"
+	"crypto/rsa"
+	"encoding/hex"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"math/big"
+	"os"
+	"time"
+
+	"github.com/rfielding/whiskeyTango/wt"
+)
+*/
+
+func Prove(keypairName string, challenge string) error {
+	challengeBytes, err := hex.DecodeString(challenge)
+	if err != nil {
+		return fmt.Errorf("unable to hex decode challenge: %v", err)
+	}
+	var challengeInt = (&big.Int{}).SetBytes(challengeBytes)
+
+	kPair, err := ReadKeyPair(keypairName)
+	if err != nil {
+		return err
+	}
+	responseInt := RSA(challengeInt, kPair.D, kPair.PublicKey.N)
+	fmt.Printf("%s", string(responseInt.Bytes()))
+	return nil
+}
+
+func Challenge(keys *JWKeys, challenge string) error {
+	scanner := bufio.NewScanner(os.Stdin)
+	if !scanner.Scan() {
+		return fmt.Errorf("Failed to read: %v", scanner.Err())
+	}
+	input := scanner.Bytes()
+
+	validClaims, err := GetValidClaims(keys, time.Now().Unix(), string(input))
+	if err != nil {
+		return fmt.Errorf("Cannot validate claims: %v\n%s", err, string(input))
+	}
+	// calculate: challengeInt^E mod N
+	encryptPublic := validClaims["encryptPublic"].(map[string]interface{})
+	publicKeyE, okE := encryptPublic["E"].(string)
+	publicKeyN, okN := encryptPublic["N"].(string)
+	if okE && len(publicKeyE) > 0 && okN && len(publicKeyN) > 0 {
+
+		bE, err := hex.DecodeString(publicKeyE)
+		if err != nil {
+			return fmt.Errorf("unable to unpack E: %v", err)
+		}
+		E := (&big.Int{}).SetBytes(bE)
+
+		bN, err := hex.DecodeString(publicKeyN)
+		if err != nil {
+			return fmt.Errorf("unable to unpack N: %v", err)
+		}
+		N := (&big.Int{}).SetBytes(bN)
+
+		challengeInt := (&big.Int{}).SetBytes([]byte(challenge))
+
+		C := RSA(challengeInt, E, N)
+		fmt.Printf("%s\n", hex.EncodeToString(C.Bytes()))
+	}
+	return nil
+}
+
+func Verify(keys *JWKeys) error {
+	scanner := bufio.NewScanner(os.Stdin)
+	if !scanner.Scan() {
+		return fmt.Errorf("Failed to read: %v", scanner.Err())
+	}
+	input := scanner.Bytes()
+
+	validClaims, err := GetValidClaims(keys, time.Now().Unix(), string(input))
+	if err != nil {
+		return fmt.Errorf("Cannot validate claims: %v\n%s", err, string(input))
+	}
+	fmt.Printf("%s\n", AsJson(validClaims))
+	return nil
+}
+
+func KeyPair(bits int) (*rsa.PrivateKey, error) {
+	priv, err := rsa.GenerateKey(rand.Reader, bits)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to generate RSA Keypair: %v", err)
+	}
+	return priv, nil
+}
+
+func ReadKeyPair(name string) (*rsa.PrivateKey, error) {
+	d, err := os.ReadFile(name)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read file %s: %v", name, err)
+	}
+	j := make(map[string]string)
+	err = json.Unmarshal(d, &j)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read %s: %v", name, err)
+	}
+	bD, err := hex.DecodeString(j["D"])
+	if err != nil {
+		return nil, fmt.Errorf("could not decode D from %s: %v", name, err)
+	}
+	D := big.NewInt(0).SetBytes(bD)
+
+	bP, err := hex.DecodeString(j["P"])
+	if err != nil {
+		return nil, fmt.Errorf("could not decode P from %s: %v", name, err)
+	}
+	P := big.NewInt(0).SetBytes(bP)
+
+	bQ, err := hex.DecodeString(j["Q"])
+	if err != nil {
+		return nil, fmt.Errorf("could not decode Q from %s: %v", name, err)
+	}
+	Q := big.NewInt(0).SetBytes(bQ)
+
+	bN, err := hex.DecodeString(j["publicKeyN"])
+	if err != nil {
+		return nil, fmt.Errorf("could not decode N from %s: %v", name, err)
+	}
+	N := big.NewInt(0).SetBytes(bN)
+
+	bE, err := hex.DecodeString(j["publicKeyE"])
+	if err != nil {
+		return nil, fmt.Errorf("could not decode E from %s: %v", name, err)
+	}
+	E := big.NewInt(0).SetBytes(bE)
+
+	v := &rsa.PrivateKey{
+		PublicKey: rsa.PublicKey{
+			N: N,
+			E: int(E.Int64()),
+		},
+		D:      D,
+		Primes: []*big.Int{P, Q},
+	}
+	v.Precompute()
+	return v, nil
+}
+
+func WriteNewKeyPair(name string, bits int) error {
+	kp, err := KeyPair(bits)
+	if err != nil {
+		return err
+	}
+	data := make(map[string]string)
+	data["publicKeyE"] = hex.EncodeToString(
+		big.NewInt(int64(kp.PublicKey.E)).Bytes(),
+	)
+	data["publicKeyN"] = hex.EncodeToString(
+		kp.PublicKey.N.Bytes(),
+	)
+	data["D"] = hex.EncodeToString(
+		kp.D.Bytes(),
+	)
+	data["P"] = hex.EncodeToString(
+		kp.Primes[0].Bytes(),
+	)
+	data["Q"] = hex.EncodeToString(
+		kp.Primes[1].Bytes(),
+	)
+	j, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error making keypair %s: %v", name, err)
+	}
+	err = os.WriteFile(name, j, 0700)
+	if err != nil {
+		return fmt.Errorf("error writing keypair %s: %v", name, err)
+	}
+	return nil
+}
+
+func Sign(keys *JWKeys, kid string, minutes int64, keypairName string) error {
+	scanner := bufio.NewScanner(os.Stdin)
+	if !scanner.Scan() {
+		return fmt.Errorf("Failed to read: %v", scanner.Err())
+	}
+	input := scanner.Bytes()
+	var claims map[string]interface{}
+	err := json.Unmarshal(input, &claims)
+	if err != nil {
+		return fmt.Errorf("Could not parse claims")
+	}
+
+	var pub *rsa.PublicKey
+	if len(keypairName) > 0 {
+		priv, err := ReadKeyPair(keypairName)
+		if err != nil {
+			return err
+		}
+		pub = &priv.PublicKey
+	}
+
+	// exp, and kid are inserted for you.
+	t, err := CreateToken(
+		keys,
+		kid,
+		time.Now().Add(time.Minute*time.Duration(minutes)).Unix(),
+		claims,
+		pub,
+		keypairName,
+	)
+	if err != nil {
+		return fmt.Errorf("Could not create token: %v", err)
+	}
+	fmt.Printf("%s\n", t)
+	return nil
+}
+
+func LoadCA(f string) (*JWKeys, error) {
+	keys := &JWKeys{}
+	if _, err := os.Stat(f); os.IsNotExist(err) {
+		return keys, nil
+	}
+	b, err := os.ReadFile(f)
+	if err != nil {
+		return keys, fmt.Errorf("Could not read CA: %v", err)
+	}
+	keys, err = ParseJWK(b)
+	if err != nil {
+		return keys, fmt.Errorf("Unable to parse JWK: %v", err)
+	}
+	return keys, nil
+}
+
+func StoreCA(f string, keys *JWKeys) error {
+	cajson := AsJson(keys)
+	err := os.WriteFile(f, []byte(cajson), 0600)
+	if err != nil {
+		return fmt.Errorf("Could not write CA: %v", err)
+	}
+	return nil
+}
+
+func MakeCA(kid string, bits int, smalle bool) error {
+	keys := &JWKeys{}
+	keys.AddRSA(kid, bits, smalle)
+
+	caJson := AsJson(keys)
+	f := fmt.Sprintf("%s-sign.json", kid)
+	err := os.WriteFile(f, []byte(caJson), 0600)
+	if err != nil {
+		return fmt.Errorf("Could not write CA: %v", err)
+	}
+
+	caJson = keys.KeyMap[kid].AsJsonPrivate()
+
+	f = fmt.Sprintf("%s-verify.json", kid)
+	err = os.WriteFile(f, []byte(caJson), 0600)
+	if err != nil {
+		return fmt.Errorf("Could not write CA: %v", err)
+	}
+	return nil
+}
+
+func Main() error {
+	kp := flag.String("kp", "", "RSA keypair filename")
+	show := flag.String("show", "", "show what is being read")
+	ca := flag.String("ca", "", "CA signing json jwk")
+	trust := flag.String("trust", "", "trust a CA key")
+	create := flag.Bool("create", false, "Create an item")
+	sign := flag.Bool("sign", false, "Sign a token")
+	smalle := flag.Bool("smalle", false, "Use standard small e in RSA")
+	bits := flag.Int("bits", 2048, "bits for the RSA key")
+	verify := flag.Bool("verify", false, "Verify a token")
+	minutes := flag.Int64("minutes", 20, "Expiration in minutes")
+	kid := flag.String("kid", "", "kid to issue")
+	challenge := flag.String("challenge", "", "challenge token owner to prove ownership")
+	prove := flag.String("prove", "", "prove to challenger that token is owned")
+	flag.Parse()
+
+	if len(*ca) > 0 {
+		keys, err := LoadCA(*ca)
+		if err != nil {
+			return err
+		}
+		if len(*trust) > 0 && len(*kid) > 0 {
+			trusted, err := LoadCA(*trust)
+			if err != nil {
+				return err
+			}
+			k := keys.KeyMap[*kid].Redact()
+			trusted.Insert(*kid, k)
+			err = StoreCA(*trust, trusted)
+			return err
+		}
+		if *create && len(*kid) > 0 {
+			// ca [fname] create kid [kid]
+			keys.AddRSA(*kid, *bits, *smalle)
+			err = StoreCA(*ca, keys)
+			return err
+		}
+		if *sign && len(*kid) > 0 {
+			err = Sign(keys, *kid, *minutes, *kp)
+			return err
+		}
+		if *verify {
+			err = Verify(keys)
+			return err
+		}
+		if len(*challenge) > 0 {
+			err = Challenge(keys, *challenge)
+			return err
+		}
+	}
+	if len(*kp) > 0 && len(*show) > 0 {
+		privateKey, err := ReadKeyPair(*kp)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("%s\n", AsJson(privateKey))
+		return err
+	}
+	if len(*prove) > 0 && len(*kp) > 0 {
+		err := Prove(*kp, *prove)
+		return err
+	}
+	if len(*kp) > 0 {
+		err := WriteNewKeyPair(*kp, *bits)
+		return err
+	}
+	return nil
 }
