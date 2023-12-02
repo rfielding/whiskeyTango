@@ -403,9 +403,27 @@ So, we can sign in a pubilc key that is hex encoded N and E
 for a new keypair. We can then hash this JWT to locate the private key.
 
 ```
+>./test.sh 
+/usr/bin/jq
+--- clean up
+--- compile binary
+--- make ca key for signer for https://rfielding.net/ca-1
+--- trust signer https://rfielding.net/ca-1
+{
+  "keys": [
+    {
+      "kty": "RSA",
+      "kid": "https://rfielding.net/ca-1",
+      "bits": 1024,
+      "n": "u3Yc9WnVhibt3XsYOXWbflw9sX9TAORDUWgj7c4m08UAOfYnK2g9Tf498rqc3uPbyfPITkqZ1GS-XB5zDRF73OnArR164EE112YKgvV50Ks6R9yGR89alMuv-5xdY7nWafU0ApY7pAHN-FyGnK7YYP87hsqyXTuHVqooCjoEzgk",
+      "e": "SglybG3MAFcBty1agc3M8wnjJVwxuzlxqOqQAeulocKtCZPBUIsfc40AP3-8QsfhlCce3vlcBNrMqPPmP3lKFeu4BJqgeW-Q9RmVAj5S9jd5_-g7IhGowQBvvrg6bw6XUkP_vQqEpiNBfx_ideoLEsJ5ylFhvOltD_AoFSAAZQk"
+    }
+  ]
+}
+
 --- make keypair for robfielding
 --- sign token
-aHR0cHM6Ly9yZmllbGRpbmcubmV0L2NhLTE.KVRp_BIORpwkqw7XcpZPAu3XXCmolGsfaLYaOFPyVUFDOynTvyeoAnwR_UG0DkSMlV8d9-c-tzZcTlwPIxVodkBP49lBDsAB54d7o05VJ_Lgc3M1V-rGKUpqv7X-fHe1cDLBQCBws3HtVS01vVMf3BiIxnPJ72IeEJAiodWcy_49L5loxcvOlQOvV0kH1KMQzypisHYiKZ2xJgHAYgsykgqhMo6YsUMm9P77DUOE8vDu9z2nPq1-EJXqIMH7o4nLQ2355Bz7lESg59t001b2b4mEeWn9AKOFwNZF3JsQKnOOjRx9v502hJFG4en0NAaoRrNM4eem_YU1e-V7Pm4wlWuT9dLCSO8id5kXHnunIrXa2eHBW-ayiqKszVMaNmMYcJFn9fIkeV5Fh9MMownNkSKxWW8fPFAldNdkFbbU6FzjlsgmyzklCHgiFu2L5t76w9RVjkmNCpHPbszHEEAI_Y3PF6447T_GFM9qd3attdtCKqsPeSQVa7cZSdNMDv2Y06E_8h5RIsiaIvKeQR5wkvAarq7IlBJgzR2jZm-UwLfG_hX-WyYQBN6zzJz_jcsS6cBrwPsEoRqPZtwqFkCfWOu29ob5IGHuRBLz9nNAKfWUsZDUjnn5Z0N31j_eFnI.X5lmeKiHnTJVI0eH_7f5Z_WV7WaByVfjR914YhWICCP1e-M4hTtWAEiRBG2q3Vfz8ydEETpqJ6MfKYUD3yXDfWctiHV58cVC4YIi-PCHGZpRRL3dlMrWqYApKcg9u_p4U9nABJFWzj7d59RPAhW_VubVKhQkmTKX3JvuqYg2rY8
+aHR0cHM6Ly9yZmllbGRpbmcubmV0L2NhLTE.bidG3-hw-JIa5KXEfw3Yk7TL_g5XKJeC7SbfixlY_If4UGNf1qpGRJE-GMG-PAaQro4fMVFi8lzvM6uYFftl4cJPCNqpZpuObUuJEszqjjwKOKp8BRpICM0jKOiiye2ZEj4K-7W-Ocj6GXSIF36vre8QcsbQ0-jgnxUxOS14CcxV0KHuiOPtjXCdvYjlkf8pp3wKmU5UvJME-UI4J5y6Nsea-bzCuhoOdWQAmGzTdORHUvqLACApNOKVVWbRO7LkLcQpzMq7psZ8SPIsWVkXdZ6mT4RQN8H6tGjIXRoCjJeUaBUPJmcVn7F2URKrxKSKus7YF71INd8jdzk633S0yjYQWA-Yw38sy_uRpFNe7GyM49tZc5HK6xLOVrNkkYf8Dj6Mz8DbVBf5rsp-MdKQkXHhFzU2q29nzaElvnuxr1w82jABfoS4ZwmZGVKrOAmwzWuJD_zq4j2_An0KcTMZ9e-SuwVaHUARXD5laFjZQtS4XrIH-KBmZF4EnszRIb4Tw_IbJhD0thlFQZarUBRIXyBm0gAZ2w_mw517_yO9afFwnTBcnRwbx9hpWYnMqtn47OVc0o7wKkSWjLtHmdH-bYzCZ3uGvqVinhcJHRx9y4b7P9UqoOs.gl947qmmELsY2d_5jPJrJRt5jBpNh7lQK3gamTN2LTFyswz0tZU3B1fHyuV4oAux4dfWCd63vnA7swEeB1tmU4ksaP-EhvmZvXpDLm6ypMwVLNDUsir_TXKRt4sr2fVWyx4ASefiFSgvHvzSn1gIOQ_dYNHP3Pj4R9v1Bda7we0
 
 --- verify token from golang
 {
@@ -416,15 +434,17 @@ aHR0cHM6Ly9yZmllbGRpbmcubmV0L2NhLTE.KVRp_BIORpwkqw7XcpZPAu3XXCmolGsfaLYaOFPyVUFD
     "rob.fielding@gmail.com",
     "rrr00bb@yahoo.com"
   ],
-  "exp": 1701442963,
-  "kid": "https://rfielding.net/ca-1",
-  "publicKeyE": "010001",
-  "publicKeyN": "d8a74ce1e86f10fa2bc564b16eb43be54746f3f03783f031e1a2b0af790eb87c8b9bd7594082f9f5cc3bc169b39c25460563e546ad9c47c63ab6a75bbbba5f4c66c14fbd1c9687709b91cfce9bce18d9fba3f68a2cdc3d6ce720d39221a778e3530196e6238c9bc3512ec9ba480c959f562fbe5f496572055ef2712aaf0aa04f",
-  "publicKeyName": "robfielding.kp"
+  "encryptPublic": {
+    "E": "010001",
+    "N": "d5f6ac00dc5e30f6d92d4502b618a11975dbfb6d8446ce77b15859342561a84bb8ae93fc75cc9adade7b22496061bd19aa61a378e5e622828908e3ed3f0a0b09ab73ab1e634ec3577fbf0ba2ecbeadf8539ba9d1364c814350cfe7915b8c4a0b02ba8a2e6cfd462371c1a46991128835fed0193a11e1be7ed6b2588c5afb88df",
+    "name": "robfielding.kp"
+  },
+  "exp": 1701480276,
+  "kid": "https://rfielding.net/ca-1"
 }
 -- challenge the owner of this token to prove ownership
 ---- Create a challenge to prove ownership of this token
-b647a5b6062daf63350221a37e5946a6b5ce732f1564ab2dc58322e207e6982c5550b10863e7d3f37839a3301804175599a5efda3ca1e6a93070816dad5e78d28cb462b28c6de820003300b1da8b7ba0ce24ded4bd29d512f224b793be41890fa9323be50a0122455de8b2b42dafaba5b5dc0839d9634b025482c417589e1d41
+8db678ade96abb4c674a66709a3aeb01770663fee8fb94bd9672e3972639a0a0539f1ade9b5377aeeb59e861d09600117b7d8857f7dafe34550ba2c8473eeb487baa08d2368129adeb09dfd80df92561a549943f39a12e81b40d43ac5e2e81412a7001de6b0abe7b43eed68febc6c6fe1c6728b753cb0ba73607d63adfdff865
 ---- Verify the proof by getting back the secret phrase
 squeamishossifrage
 ```

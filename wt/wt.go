@@ -271,9 +271,11 @@ func CreateToken(
 	c["exp"] = exp
 	c["kid"] = kid
 	if publicKey != nil {
-		c["publicKeyN"] = hex.EncodeToString(publicKey.N.Bytes())
-		c["publicKeyE"] = hex.EncodeToString(big.NewInt(int64(publicKey.E)).Bytes())
-		c["publicKeyName"] = publicKeyName
+		encryptPublic := make(map[string]interface{})
+		encryptPublic["N"] = hex.EncodeToString(publicKey.N.Bytes())
+		encryptPublic["E"] = hex.EncodeToString(big.NewInt(int64(publicKey.E)).Bytes())
+		encryptPublic["name"] = publicKeyName
+		c["encryptPublic"] = encryptPublic
 	}
 	j, err := json.Marshal(c)
 	if err != nil {

@@ -42,8 +42,9 @@ func Challenge(keys *wt.JWKeys, challenge string) {
 		panic(fmt.Sprintf("Cannot validate claims: %v\n%s", err, string(input)))
 	}
 	// calculate: challengeInt^E mod N
-	publicKeyE, okE := validClaims["publicKeyE"].(string)
-	publicKeyN, okN := validClaims["publicKeyN"].(string)
+	encryptPublic := validClaims["encryptPublic"].(map[string]interface{})
+	publicKeyE, okE := encryptPublic["E"].(string)
+	publicKeyN, okN := encryptPublic["N"].(string)
 	if okE && len(publicKeyE) > 0 && okN && len(publicKeyN) > 0 {
 
 		bE, err := hex.DecodeString(publicKeyE)
