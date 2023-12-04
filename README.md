@@ -231,7 +231,7 @@ flowchart TB
   sig-- append signature into token -->APPENDB64WithDots
 ```
 
-> Note: we use a subset of k, the lower 32 bytes to do the encryption. We make k, a random value, as large as possible. In this case, it's the number of RSA prime bits divided by 8, to get the number of bytes to represent such a large prime; minus one byte. ie: RSA 2048, using a k of 2047 bits
+> Note: we use a subset of k, the lower 32 bytes to do the encryption. We make k, a random value, as large as possible. In this case, it's the number of RSA prime bits divided by 8, to get the number of bytes to represent such a large prime; minus one byte. ie: RSA 2048, using a k of 2040 bits
 
 ### Verify a token
 
@@ -321,7 +321,7 @@ E = token.E
 e = trusts[kid].e 
 HE = Sha256(E)
 Sig = token.Sig
-V = VerifyRSA(d,Sig)
+V = VerifyRSA(e,Sig)
 k = Xor(V,HE)
 claims = AESDecrypt(k, E)
 ```
