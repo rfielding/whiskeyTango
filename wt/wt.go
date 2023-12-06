@@ -66,9 +66,14 @@ func (keys *JWKeys) Insert(kid string, k JWKey) {
 
 // Allocate a new RSA key for kid
 func (keys *JWKeys) AddRSA(kid string, bits int, smalle bool) error {
+	task := fmt.Errorf("during AddRSA %s", kid)
 	k, err := NewRSAJWK(kid, bits, smalle)
 	if err != nil {
-		return fmt.Errorf("unable to add in JWK RSA kid %s to JWKeys: %v", kid, err)
+		return errors.Join(
+			task,
+			fmt.Errorf("add in JWK RSA"),
+			err,
+		)
 	}
 	keys.Insert(kid, k)
 	return nil
@@ -96,13 +101,18 @@ var NumberEncoding = base64.RawURLEncoding
 
 // Generate a new RSA keypair for a kid - CA will have many of these
 func NewRSAJWK(kid string, bits int, smalle bool) (JWKey, error) {
+	task := fmt.Errorf("during NewRSAJWK %s", kid)
 	k := JWKey{}
 	k.Kty = "RSA"
 	k.Bits = bits
 	k.Kid = kid
 	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
-		return k, fmt.Errorf("unable to generate RSA Keypair: %v", err)
+		return k, errors.Join(
+			task,
+			fmt.Errorf("gnerate RSA keypair"),
+			err,
+		)
 	}
 
 	// We need phi to make E not deterministic
@@ -123,7 +133,11 @@ func NewRSAJWK(kid string, bits int, smalle bool) (JWKey, error) {
 			// Generate
 			D, err := rand.Int(rand.Reader, maxModPhi)
 			if err != nil {
-				return k, fmt.Errorf("unable to generate random D: %v", err)
+				return k, errors.Join(
+					task,
+					fmt.Errorf("unable to generate random D"),
+					err,
+				)
 			}
 			k.Dint = new(big.Int).Mod(D, phi)
 			if k.Dint == nil {
@@ -156,6 +170,7 @@ func NewRSAJWK(kid string, bits int, smalle bool) (JWKey, error) {
 // ParseJWK reads in a JWK from the filesystem,
 // either extended for use by the CA, or for a client as a standard JWK format.
 func ParseJWK(b []byte) (*JWKeys, error) {
+	task := fmt.Errorf("during ParseJWK")
 	var keys JWKeys
 	json.Unmarshal(b, &keys)
 	keys.KeyMap = make(map[string]JWKey)
@@ -164,15 +179,27 @@ func ParseJWK(b []byte) (*JWKeys, error) {
 		if v.Kty == "RSA" && len(v.N) > 0 && len(v.E) > 0 {
 			nn, err := NumberEncoding.DecodeString(v.N)
 			if err != nil {
-				return nil, fmt.Errorf("cannot parse RSA N: %v", err)
+				return nil, errors.Join(
+					task,
+					fmt.Errorf("cannod decode N"),
+					err,
+				)
 			}
 			nd, err := NumberEncoding.DecodeString(v.D)
 			if err != nil {
-				return nil, fmt.Errorf("cannot parse RSA D: %v", err)
+				return nil, errors.Join(
+					task,
+					fmt.Errorf("cannod decode RSA D"),
+					err,
+				)
 			}
 			ne, err := NumberEncoding.DecodeString(v.E)
 			if err != nil {
-				return nil, fmt.Errorf("cannot parse RSA E: %v", err)
+				return nil, errors.Join(
+					task,
+					fmt.Errorf("cannot decode RSA E"),
+					err,
+				)
 			}
 			v.Nint = new(big.Int).SetBytes(nn)
 			v.Dint = new(big.Int).SetBytes(nd)
@@ -190,42 +217,68 @@ func H(b []byte) []byte {
 
 // Returns claims,err
 func Decrypt(k []byte, ciphertextWithNonce []byte) ([]byte, error) {
+	task := fmt.Errorf("during Decrypt")
 	nonce := ciphertextWithNonce[0:12]
 	ciphertext := ciphertextWithNonce[12:]
 
 	block, err := aes.NewCipher(k)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create cipher: %s", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("unable to create NewCipher"),
+			err,
+		)
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create block cipher: %s", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("unable to create NewGCM"),
+			err,
+		)
 	}
 
 	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return nil, fmt.Errorf("unable to decrypt plaintext: %v", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("unable to decrypt"),
+			err,
+		)
 	}
 	return plaintext, nil
 }
 
 // Returns ciphertextWithNonce,err
 func Encrypt(k []byte, claims []byte) ([]byte, error) {
+	task := fmt.Errorf("during Encrypt")
 	block, err := aes.NewCipher(k)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get a new block cipher: %v", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("cannot get a NewCipher"),
+			err,
+		)
 	}
 
 	// Never use more than 2^32 random nonces with a given key because of the risk of a repeat.
 	nonce := make([]byte, 12)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return nil, fmt.Errorf("cannot create a nonce: %v", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("cannot ReadFull"),
+			err,
+		)
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, fmt.Errorf("cannot instantiate AES GCM cipher: %v", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("cannot create NewGCM"),
+			err,
+		)
 	}
 
 	ciphertext := aesgcm.Seal(nil, nonce, claims, nil)
@@ -257,19 +310,31 @@ func CreateToken(
 	publicKey *rsa.PublicKey,
 	publicKeyName string,
 ) (string, error) {
+	task := fmt.Errorf("during CreateToken")
 	// We round-trip marshalling, so that the claimsObject can be any kind of json object we like as input
 	claimsMarshalled, err := json.Marshal(claimsObject)
 	if err != nil {
-		return "", fmt.Errorf("unable to marshal claimsObject: %v", err)
+		return "", errors.Join(
+			task,
+			fmt.Errorf("unable to Marshal claims"),
+			err,
+		)
 	}
 	var claims interface{}
 	err = json.Unmarshal(claimsMarshalled, &claims)
 	if err != nil {
-		return "", fmt.Errorf("unable to remarshal claims object into generic interface: %v", err)
+		return "", errors.Join(
+			task,
+			fmt.Errorf("unable to Unmarshal to claims"),
+			err,
+		)
 	}
 	c, ok := claims.(map[string]interface{})
 	if !ok {
-		return "", fmt.Errorf("must pass in something that serializes to a json struct at top level")
+		return "", errors.Join(
+			task,
+			fmt.Errorf("must pass in a map[string]interface{} at the top for claims"),
+		)
 	}
 
 	// We can set exp, kid no matter what fields exist on claimsObject
@@ -284,26 +349,41 @@ func CreateToken(
 	}
 	j, err := json.Marshal(c)
 	if err != nil {
-		return "", fmt.Errorf("unable to marshal plaintext: %v", err)
+		return "", errors.Join(
+			task,
+			fmt.Errorf("failed to Marshal claims"),
+			err,
+		)
 	}
 
 	// Sign V
 	theKey, ok := keys.KeyMap[kid]
 	if !ok {
-		return "", fmt.Errorf("unable to find kid %s", kid)
+		return "", errors.Join(
+			task,
+			fmt.Errorf("unable to find kid %s", kid),
+		)
 	}
 
 	// Create a fresh random key
 	k := make([]byte, theKey.Bits/8-1)
 	_, err = io.ReadFull(rand.Reader, k)
 	if err != nil {
-		return "", fmt.Errorf("unable to create a fresh random witness key: %v", err)
+		return "", errors.Join(
+			task,
+			fmt.Errorf("failed to ReadFull"),
+			err,
+		)
 	}
 
 	// Generate the ciphertext E
 	E, err := Encrypt(k[0:32], j)
 	if err != nil {
-		return "", fmt.Errorf("failed to encrypt plaintext claims: %s", c)
+		return "", errors.Join(
+			task,
+			fmt.Errorf("failed to Encrypt claims"),
+			err,
+		)
 	}
 
 	// Generate hash of ciphertext HE
@@ -328,31 +408,50 @@ func CreateToken(
 
 // Extract claims from token.
 func GetValidClaims(keys *JWKeys, now int64, token string) (map[string]interface{}, error) {
+	task := fmt.Errorf("during GetValidClaims")
 	tokenParts := strings.Split(token, ".")
 	if len(tokenParts) != 3 {
-		return nil, fmt.Errorf("expected 3 token parts, got %d", len(tokenParts))
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("expected 3 token parts, but got %d", len(tokenParts)),
+		)
 	}
 
 	kidBytes, err := base64.RawURLEncoding.DecodeString(tokenParts[0])
 	if err != nil {
-		return nil, fmt.Errorf("unable to extract header which should be kid value only: %v", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("unable to extract header which should be kid value"),
+			err,
+		)
 	}
 	kid := string(kidBytes)
 
 	// will it decode ALL bytes?
 	ciphertextWithNonce, err := base64.RawURLEncoding.DecodeString(tokenParts[1])
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode body: %v", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("unable to decode body"),
+			err,
+		)
 	}
 
 	SigBytes, err := base64.RawURLEncoding.DecodeString(tokenParts[2])
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode signature bytes: %v", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("unable to decode signature bytes"),
+			err,
+		)
 	}
 
 	theKey, ok := keys.KeyMap[kid]
 	if !ok {
-		return nil, fmt.Errorf("unable to find kid %s", kid)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("could not find kid %s", kid),
+		)
 	}
 	// We need a hash of the ciphertext, as proof that we checked it
 	HE := new(big.Int).SetBytes(H(ciphertextWithNonce))
@@ -371,23 +470,38 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (map[string]interface
 	// We now can decrypt claims
 	claims, err := Decrypt(k[0:32], ciphertextWithNonce)
 	if err != nil {
-		return nil, fmt.Errorf("unable to decrypt claims: %v", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("unable to decrypt claims"),
+			err,
+		)
 	}
 
 	var result map[string]interface{}
 	err = json.Unmarshal(claims, &result)
 	if err != nil {
-		return nil, fmt.Errorf("unable to unmarshal decrypted claims: %v", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("unable to unmarshal claims"),
+			err,
+		)
 	}
 
 	// check the expiration
 	exp2, ok := result["exp"].(float64)
 	if !ok {
-		return nil, fmt.Errorf("cannot check exp date: %v", err)
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("cannot find expiration date exp"),
+		)
 	}
 
-	if exp2 < float64(now) {
-		return nil, fmt.Errorf("token is expired")
+	// note that we only have 53 bits of precision
+	if int64(exp2) < now {
+		return nil, errors.Join(
+			task,
+			fmt.Errorf("token is expired at %d", int64(exp2)),
+		)
 	}
 
 	return result, nil
