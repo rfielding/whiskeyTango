@@ -628,7 +628,7 @@ func ReadKeyPair(name string) (*rsa.PrivateKey, error) {
 			err,
 		)
 	}
-	bD, err := hex.DecodeString(j["D"])
+	bD, err := NumberEncoding.DecodeString(j["D"])
 	if err != nil {
 		return nil, errors.Join(
 			task,
@@ -638,7 +638,7 @@ func ReadKeyPair(name string) (*rsa.PrivateKey, error) {
 	}
 	D := big.NewInt(0).SetBytes(bD)
 
-	bP, err := hex.DecodeString(j["P"])
+	bP, err := NumberEncoding.DecodeString(j["P"])
 	if err != nil {
 		return nil, errors.Join(
 			task,
@@ -648,7 +648,7 @@ func ReadKeyPair(name string) (*rsa.PrivateKey, error) {
 	}
 	P := big.NewInt(0).SetBytes(bP)
 
-	bQ, err := hex.DecodeString(j["Q"])
+	bQ, err := NumberEncoding.DecodeString(j["Q"])
 	if err != nil {
 		return nil, errors.Join(
 			task,
@@ -658,7 +658,7 @@ func ReadKeyPair(name string) (*rsa.PrivateKey, error) {
 	}
 	Q := big.NewInt(0).SetBytes(bQ)
 
-	bN, err := hex.DecodeString(j["publicKeyN"])
+	bN, err := NumberEncoding.DecodeString(j["publicKeyN"])
 	if err != nil {
 		return nil, errors.Join(
 			task,
@@ -668,7 +668,7 @@ func ReadKeyPair(name string) (*rsa.PrivateKey, error) {
 	}
 	N := big.NewInt(0).SetBytes(bN)
 
-	bE, err := hex.DecodeString(j["publicKeyE"])
+	bE, err := NumberEncoding.DecodeString(j["publicKeyE"])
 	if err != nil {
 		return nil, errors.Join(
 			task,
@@ -701,19 +701,19 @@ func WriteNewKeyPair(name string, bits int) error {
 		)
 	}
 	data := make(map[string]string)
-	data["publicKeyE"] = hex.EncodeToString(
+	data["publicKeyE"] = NumberEncoding.EncodeToString(
 		big.NewInt(int64(kp.PublicKey.E)).Bytes(),
 	)
-	data["publicKeyN"] = hex.EncodeToString(
+	data["publicKeyN"] = NumberEncoding.EncodeToString(
 		kp.PublicKey.N.Bytes(),
 	)
-	data["D"] = hex.EncodeToString(
+	data["D"] = NumberEncoding.EncodeToString(
 		kp.D.Bytes(),
 	)
-	data["P"] = hex.EncodeToString(
+	data["P"] = NumberEncoding.EncodeToString(
 		kp.Primes[0].Bytes(),
 	)
-	data["Q"] = hex.EncodeToString(
+	data["Q"] = NumberEncoding.EncodeToString(
 		kp.Primes[1].Bytes(),
 	)
 	j, err := json.MarshalIndent(data, "", "  ")
