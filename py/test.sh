@@ -20,5 +20,8 @@
   cat claims.challenge
   echo  -- prove python challenge from go
   ../cmd/whiskeyTango/wt -kp ../cmd/whiskeyTango/robfielding.kp -prove $(cat claims.challenge)
-
+  echo
+  echo  -- prove python challenge from python
+  ./wt.py -kp ../cmd/whiskeyTango/robfielding.kp -prove $(cat claims.challenge)
+  echo
 )

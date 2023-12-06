@@ -48,4 +48,5 @@ cat claims.challenge
 echo ---- Verify the challenge
 ./wt -kp robfielding.kp -prove $(cat claims.challenge)
 echo
+echo
 )

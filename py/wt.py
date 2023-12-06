@@ -13,6 +13,18 @@ import math
 import calendar
 import datetime
 
+def wt_prove(kpFname: str, prove: str) -> str:
+    f = open(kpFname)
+    kp = json.load(f)
+    f.close()
+    n = int.from_bytes(base64.urlsafe_b64decode(kp["publicKeyN"] + "=="), byteorder="big")
+    d = int.from_bytes(base64.urlsafe_b64decode(kp["D"] + "=="), byteorder="big")
+    v = int.from_bytes(base64.urlsafe_b64decode(prove+"=="), byteorder="big")
+    r = pow(v,d,n)
+    b = math.log2(r)
+    rb = r.to_bytes(int(b+1), byteorder='big')
+    return str(rb, 'utf-8')
+
 def wt_challenge(verified: any, challenge: str) -> str:
     ep = verified["encryptPublic"]
     n = int.from_bytes(base64.urlsafe_b64decode(ep["n"] + "=="), byteorder="big")
@@ -95,8 +107,10 @@ def main() -> int:
     parser.add_argument("-ca")
     parser.add_argument("-verify", action="store_true")
     parser.add_argument("-challenge")
+    parser.add_argument("-kp")
+    parser.add_argument("-prove")
     args = parser.parse_args()
-    if len(args.ca) > 0:
+    if args.ca:
         # should only be ONE line from stdin
         token = ""
         if args.verify:
@@ -114,6 +128,10 @@ def main() -> int:
             print(wt_challenge(verified,args.challenge))
         else:
             print(json.dumps(verified))
+        return 0
+    if args.prove:
+        print(wt_prove(args.kp, args.prove))
+        return 0
     return 0
 
 
