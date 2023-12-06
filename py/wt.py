@@ -19,8 +19,8 @@ def wt_challenge(verified: any, challenge: str) -> str:
     e = int.from_bytes(base64.urlsafe_b64decode(ep["e"] + "=="), byteorder="big")
     v = int.from_bytes(challenge.encode('utf-8'), byteorder="big")
     r = pow(v,e,n)
-    b = int(math.floor(math.log2(n)))
-    x = base64.urlsafe_b64encode(r.to_bytes(int(b/8+7)-1, byteorder="big"))
+    b = int(math.floor(math.log2(r)))
+    x = base64.urlsafe_b64encode(r.to_bytes(int((b+7)/8), byteorder="big"))
     return str(x, 'utf-8').replace('=','')
 
 # The only plaintext in the token is the kid,
