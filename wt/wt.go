@@ -68,7 +68,7 @@ func (keys *JWKeys) Insert(kid string, k JWKey) {
 func (keys *JWKeys) AddRSA(kid string, bits int, smalle bool) error {
 	k, err := NewRSAJWK(kid, bits, smalle)
 	if err != nil {
-		return fmt.Errorf("Unable to add in JWK RSA kid %s to JWKeys: %v", kid, err)
+		return fmt.Errorf("unable to add in JWK RSA kid %s to JWKeys: %v", kid, err)
 	}
 	keys.Insert(kid, k)
 	return nil
@@ -86,7 +86,7 @@ func (key JWKey) AsJsonPrivate() string {
 	k2 := key.Redact()
 	j, err := json.MarshalIndent(k2, "", "  ")
 	if err != nil {
-		log.Printf("Unable to marshal redacted JWKey: %v", err)
+		log.Printf("unable to marshal redacted JWKey: %v", err)
 	}
 	return string(j)
 }
@@ -102,7 +102,7 @@ func NewRSAJWK(kid string, bits int, smalle bool) (JWKey, error) {
 	k.Kid = kid
 	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
-		return k, fmt.Errorf("Unable to generate RSA Keypair: %v", err)
+		return k, fmt.Errorf("unable to generate RSA Keypair: %v", err)
 	}
 
 	// We need phi to make E not deterministic
@@ -123,7 +123,7 @@ func NewRSAJWK(kid string, bits int, smalle bool) (JWKey, error) {
 			// Generate
 			D, err := rand.Int(rand.Reader, maxModPhi)
 			if err != nil {
-				return k, fmt.Errorf("Unable to generate random D: %v", err)
+				return k, fmt.Errorf("unable to generate random D: %v", err)
 			}
 			k.Dint = new(big.Int).Mod(D, phi)
 			if k.Dint == nil {
@@ -164,15 +164,15 @@ func ParseJWK(b []byte) (*JWKeys, error) {
 		if v.Kty == "RSA" && len(v.N) > 0 && len(v.E) > 0 {
 			nn, err := NumberEncoding.DecodeString(v.N)
 			if err != nil {
-				return nil, fmt.Errorf("Cannot parse RSA N: %v", err)
+				return nil, fmt.Errorf("cannot parse RSA N: %v", err)
 			}
 			nd, err := NumberEncoding.DecodeString(v.D)
 			if err != nil {
-				return nil, fmt.Errorf("Cannot parse RSA D: %v", err)
+				return nil, fmt.Errorf("cannot parse RSA D: %v", err)
 			}
 			ne, err := NumberEncoding.DecodeString(v.E)
 			if err != nil {
-				return nil, fmt.Errorf("Cannot parse RSA E: %v", err)
+				return nil, fmt.Errorf("cannot parse RSA E: %v", err)
 			}
 			v.Nint = new(big.Int).SetBytes(nn)
 			v.Dint = new(big.Int).SetBytes(nd)
@@ -195,17 +195,17 @@ func Decrypt(k []byte, ciphertextWithNonce []byte) ([]byte, error) {
 
 	block, err := aes.NewCipher(k)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to create cipher: %s", err)
+		return nil, fmt.Errorf("unable to create cipher: %s", err)
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to create block cipher: %s", err)
+		return nil, fmt.Errorf("unable to create block cipher: %s", err)
 	}
 
 	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to decrypt plaintext: %v", err)
+		return nil, fmt.Errorf("unable to decrypt plaintext: %v", err)
 	}
 	return plaintext, nil
 }
@@ -214,18 +214,18 @@ func Decrypt(k []byte, ciphertextWithNonce []byte) ([]byte, error) {
 func Encrypt(k []byte, claims []byte) ([]byte, error) {
 	block, err := aes.NewCipher(k)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot get a new block cipher: %v", err)
+		return nil, fmt.Errorf("cannot get a new block cipher: %v", err)
 	}
 
 	// Never use more than 2^32 random nonces with a given key because of the risk of a repeat.
 	nonce := make([]byte, 12)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return nil, fmt.Errorf("Cannot create a nonce: %v", err)
+		return nil, fmt.Errorf("cannot create a nonce: %v", err)
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot instantiate AES GCM cipher: %v", err)
+		return nil, fmt.Errorf("cannot instantiate AES GCM cipher: %v", err)
 	}
 
 	ciphertext := aesgcm.Seal(nil, nonce, claims, nil)
@@ -260,16 +260,16 @@ func CreateToken(
 	// We round-trip marshalling, so that the claimsObject can be any kind of json object we like as input
 	claimsMarshalled, err := json.Marshal(claimsObject)
 	if err != nil {
-		return "", fmt.Errorf("Unable to marshal claimsObject: %v", err)
+		return "", fmt.Errorf("unable to marshal claimsObject: %v", err)
 	}
 	var claims interface{}
 	err = json.Unmarshal(claimsMarshalled, &claims)
 	if err != nil {
-		return "", fmt.Errorf("Unable to remarshal claims object into generic interface: %v", err)
+		return "", fmt.Errorf("unable to remarshal claims object into generic interface: %v", err)
 	}
 	c, ok := claims.(map[string]interface{})
 	if !ok {
-		return "", fmt.Errorf("Must pass in something that serializes to a json struct at top level")
+		return "", fmt.Errorf("must pass in something that serializes to a json struct at top level")
 	}
 
 	// We can set exp, kid no matter what fields exist on claimsObject
@@ -277,27 +277,27 @@ func CreateToken(
 	c["kid"] = kid
 	if publicKey != nil {
 		encryptPublic := make(map[string]interface{})
-		encryptPublic["N"] = hex.EncodeToString(publicKey.N.Bytes())
-		encryptPublic["E"] = hex.EncodeToString(big.NewInt(int64(publicKey.E)).Bytes())
+		encryptPublic["n"] = hex.EncodeToString(publicKey.N.Bytes())
+		encryptPublic["e"] = hex.EncodeToString(big.NewInt(int64(publicKey.E)).Bytes())
 		encryptPublic["name"] = publicKeyName
 		c["encryptPublic"] = encryptPublic
 	}
 	j, err := json.Marshal(c)
 	if err != nil {
-		return "", fmt.Errorf("Unable to marshal plaintext: %v", err)
+		return "", fmt.Errorf("unable to marshal plaintext: %v", err)
 	}
 
 	// Sign V
 	theKey, ok := keys.KeyMap[kid]
 	if !ok {
-		return "", fmt.Errorf("Unable to find kid %s", kid)
+		return "", fmt.Errorf("unable to find kid %s", kid)
 	}
 
 	// Create a fresh random key
 	k := make([]byte, theKey.Bits/8-1)
 	_, err = io.ReadFull(rand.Reader, k)
 	if err != nil {
-		return "", fmt.Errorf("Unable to create a fresh random witness key: %v", err)
+		return "", fmt.Errorf("unable to create a fresh random witness key: %v", err)
 	}
 
 	// Generate the ciphertext E
@@ -330,29 +330,29 @@ func CreateToken(
 func GetValidClaims(keys *JWKeys, now int64, token string) (map[string]interface{}, error) {
 	tokenParts := strings.Split(token, ".")
 	if len(tokenParts) != 3 {
-		return nil, fmt.Errorf("Expected 3 token parts, got %d", len(tokenParts))
+		return nil, fmt.Errorf("expected 3 token parts, got %d", len(tokenParts))
 	}
 
 	kidBytes, err := base64.RawURLEncoding.DecodeString(tokenParts[0])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to extract header which should be kid value only: %v", err)
+		return nil, fmt.Errorf("unable to extract header which should be kid value only: %v", err)
 	}
 	kid := string(kidBytes)
 
 	// will it decode ALL bytes?
 	ciphertextWithNonce, err := base64.RawURLEncoding.DecodeString(tokenParts[1])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to decode body: %v", err)
+		return nil, fmt.Errorf("unable to decode body: %v", err)
 	}
 
 	SigBytes, err := base64.RawURLEncoding.DecodeString(tokenParts[2])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to decode signature bytes: %v", err)
+		return nil, fmt.Errorf("unable to decode signature bytes: %v", err)
 	}
 
 	theKey, ok := keys.KeyMap[kid]
 	if !ok {
-		return nil, fmt.Errorf("Unable to find kid %s", kid)
+		return nil, fmt.Errorf("unable to find kid %s", kid)
 	}
 	// We need a hash of the ciphertext, as proof that we checked it
 	HE := new(big.Int).SetBytes(H(ciphertextWithNonce))
@@ -371,52 +371,31 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (map[string]interface
 	// We now can decrypt claims
 	claims, err := Decrypt(k[0:32], ciphertextWithNonce)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to decrypt claims: %v", err)
+		return nil, fmt.Errorf("unable to decrypt claims: %v", err)
 	}
 
 	var result map[string]interface{}
 	err = json.Unmarshal(claims, &result)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to unmarshal decrypted claims: %v", err)
+		return nil, fmt.Errorf("unable to unmarshal decrypted claims: %v", err)
 	}
 
 	// check the expiration
 	exp2, ok := result["exp"].(float64)
 	if !ok {
-		return nil, fmt.Errorf("Cannot check exp date: %v", err)
+		return nil, fmt.Errorf("cannot check exp date: %v", err)
 	}
 
 	if exp2 < float64(now) {
-		return nil, fmt.Errorf("Token is expired")
+		return nil, fmt.Errorf("token is expired")
 	}
 
 	return result, nil
 }
 
-/*
-package wt
-
-import (
-	"bufio"
-	"crypto/rand"
-	"crypto/rsa"
-	"encoding/hex"
-	"encoding/json"
-	"flag"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"math/big"
-	"os"
-	"time"
-
-	"github.com/rfielding/whiskeyTango/wt"
-)
-*/
-
 func Prove(keypairName string, challenge string) error {
 	challengeBytes, err := hex.DecodeString(challenge)
-	task := fmt.Errorf("Prove ownership of keypair")
+	task := fmt.Errorf("prove ownership of keypair")
 	if err != nil {
 		return errors.Join(task, err)
 	}
@@ -432,7 +411,7 @@ func Prove(keypairName string, challenge string) error {
 }
 
 func Challenge(keys *JWKeys, challenge string) error {
-	task := fmt.Errorf("Challenge token owner")
+	task := fmt.Errorf("challenge token owner")
 	scanner := bufio.NewScanner(os.Stdin)
 	if !scanner.Scan() {
 		return errors.Join(task, scanner.Err())
@@ -443,14 +422,14 @@ func Challenge(keys *JWKeys, challenge string) error {
 	if err != nil {
 		return errors.Join(
 			task,
-			fmt.Errorf("Cannot validate claims: %s", string(input)),
+			fmt.Errorf("cannot validate claims: %s", string(input)),
 			err,
 		)
 	}
 	// calculate: challengeInt^E mod N
 	encryptPublic := validClaims["encryptPublic"].(map[string]interface{})
-	publicKeyE, okE := encryptPublic["E"].(string)
-	publicKeyN, okN := encryptPublic["N"].(string)
+	publicKeyE, okE := encryptPublic["e"].(string)
+	publicKeyN, okN := encryptPublic["n"].(string)
 	if okE && len(publicKeyE) > 0 && okN && len(publicKeyN) > 0 {
 
 		bE, err := hex.DecodeString(publicKeyE)
@@ -483,11 +462,11 @@ func Challenge(keys *JWKeys, challenge string) error {
 
 func Verify(keys *JWKeys) error {
 	scanner := bufio.NewScanner(os.Stdin)
-	task := fmt.Errorf("Verify keys")
+	task := fmt.Errorf("verify keys")
 	if !scanner.Scan() {
 		return errors.Join(
 			task,
-			fmt.Errorf("Failed to read"),
+			fmt.Errorf("failed to read"),
 			scanner.Err(),
 		)
 	}
@@ -509,7 +488,7 @@ func KeyPair(bits int) (*rsa.PrivateKey, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return nil, errors.Join(
-			fmt.Errorf("Keypair unable to generate"),
+			fmt.Errorf("keypair unable to generate"),
 			err,
 		)
 	}
