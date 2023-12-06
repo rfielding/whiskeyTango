@@ -1,3 +1,8 @@
 cmd/whiskeyTango/wt
 cmd/whiskeyTango/*.jwk
 cmd/whiskeyTango/*.wt
+cmd/whiskeyTango/claims.*
+cmd/whiskeyTango/*.kp
+py/claims.*
+
+
