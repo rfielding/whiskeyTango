@@ -857,6 +857,7 @@ func MakeCA(kid string, bits int, smalle bool) error {
 }
 
 func Main() error {
+	task := fmt.Errorf("during Main")
 	kp := flag.String("kp", "", "RSA keypair filename")
 	show := flag.String("show", "", "show what is being read")
 	ca := flag.String("ca", "", "CA signing json jwk")
@@ -875,44 +876,91 @@ func Main() error {
 	if len(*ca) > 0 {
 		keys, err := LoadCA(*ca)
 		if err != nil {
-			return err
+			return errors.Join(
+				task,
+				fmt.Errorf("failed to LoadCA %s", *ca),
+				err,
+			)
 		}
 		if len(*trust) > 0 && len(*kid) > 0 {
 			trusted, err := LoadCA(*trust)
 			if err != nil {
-				return err
+				return errors.Join(
+					task,
+					fmt.Errorf("failed to LoadCA for %s", *trust),
+					err,
+				)
 			}
 			k := keys.KeyMap[*kid].Redact()
 			trusted.Insert(*kid, k)
 			err = StoreCA(*trust, trusted)
-			return err
+			if err != nil {
+				return errors.Join(
+					task,
+					fmt.Errorf("failed to StoreCA at %s", *trust),
+					err,
+				)
+			}
+			return nil
 		}
 		if *create && len(*kid) > 0 {
 			// ca [fname] create kid [kid]
 			keys.AddRSA(*kid, *bits, *smalle)
 			err = StoreCA(*ca, keys)
-			return err
+			if err != nil {
+				return errors.Join(
+					task,
+					fmt.Errorf("failed to StoreCA at %s", *ca),
+					err,
+				)
+			}
+			return nil
 		}
 		if *sign && len(*kid) > 0 {
 			err = Sign(keys, *kid, *minutes, *kp)
-			return err
+			if err != nil {
+				return errors.Join(
+					task,
+					fmt.Errorf("failed to Sign %s into cert", *kid),
+					err,
+				)
+			}
+			return nil
 		}
 		if *verify {
 			err = Verify(keys)
-			return err
+			if err != nil {
+				return errors.Join(
+					task,
+					fmt.Errorf("failed to Verify token"),
+					err,
+				)
+			}
+			return nil
 		}
 		if len(*challenge) > 0 {
 			err = Challenge(keys, *challenge)
-			return err
+			if err != nil {
+				return errors.Join(
+					task,
+					fmt.Errorf("failed to Challenge"),
+					err,
+				)
+			}
+			return nil
 		}
 	}
 	if len(*kp) > 0 && len(*show) > 0 {
 		privateKey, err := ReadKeyPair(*kp)
 		if err != nil {
-			return err
+			return errors.Join(
+				task,
+				fmt.Errorf("failed to ReadKeyPair"),
+				err,
+			)
 		}
 		fmt.Printf("%s\n", AsJson(privateKey))
-		return err
+		return nil
 	}
 	if len(*prove) > 0 && len(*kp) > 0 {
 		err := Prove(*kp, *prove)
