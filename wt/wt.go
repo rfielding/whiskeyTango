@@ -8,7 +8,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -342,8 +341,8 @@ func CreateToken(
 	c["kid"] = kid
 	if publicKey != nil {
 		encryptPublic := make(map[string]interface{})
-		encryptPublic["n"] = hex.EncodeToString(publicKey.N.Bytes())
-		encryptPublic["e"] = hex.EncodeToString(big.NewInt(int64(publicKey.E)).Bytes())
+		encryptPublic["n"] = NumberEncoding.EncodeToString(publicKey.N.Bytes())
+		encryptPublic["e"] = NumberEncoding.EncodeToString(big.NewInt(int64(publicKey.E)).Bytes())
 		encryptPublic["name"] = publicKeyName
 		c["encryptPublic"] = encryptPublic
 	}
@@ -508,7 +507,7 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (map[string]interface
 }
 
 func Prove(keypairName string, challenge string) error {
-	challengeBytes, err := hex.DecodeString(challenge)
+	challengeBytes, err := NumberEncoding.DecodeString(challenge)
 	task := fmt.Errorf("prove ownership of keypair")
 	if err != nil {
 		return errors.Join(task, err)
@@ -546,7 +545,7 @@ func Challenge(keys *JWKeys, challenge string) error {
 	publicKeyN, okN := encryptPublic["n"].(string)
 	if okE && len(publicKeyE) > 0 && okN && len(publicKeyN) > 0 {
 
-		bE, err := hex.DecodeString(publicKeyE)
+		bE, err := NumberEncoding.DecodeString(publicKeyE)
 		if err != nil {
 			return errors.Join(
 				task,
@@ -556,7 +555,7 @@ func Challenge(keys *JWKeys, challenge string) error {
 		}
 		E := (&big.Int{}).SetBytes(bE)
 
-		bN, err := hex.DecodeString(publicKeyN)
+		bN, err := NumberEncoding.DecodeString(publicKeyN)
 		if err != nil {
 			return errors.Join(
 				task,
@@ -569,7 +568,7 @@ func Challenge(keys *JWKeys, challenge string) error {
 		challengeInt := (&big.Int{}).SetBytes([]byte(challenge))
 
 		C := RSA(challengeInt, E, N)
-		fmt.Printf("%s\n", hex.EncodeToString(C.Bytes()))
+		fmt.Printf("%s\n", NumberEncoding.EncodeToString(C.Bytes()))
 	}
 	return nil
 }

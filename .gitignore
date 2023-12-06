@@ -1,4 +1,5 @@
 cmd/whiskeyTango/wt
+cmd/whiskeyTango/whiskeyTango
 cmd/whiskeyTango/*.jwk
 cmd/whiskeyTango/*.wt
 cmd/whiskeyTango/claims.*
