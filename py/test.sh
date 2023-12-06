@@ -13,5 +13,12 @@
 
   echo
   echo -- verify from Python
-  cat ../cmd/whiskeyTango/token.wt | python3 ./wt.py -ca ../cmd/whiskeyTango/trusted.jwk -verify | ${jq}
+  cat ../cmd/whiskeyTango/token.wt | python3 ./wt.py -ca ../cmd/whiskeyTango/trusted.jwk -verify > claims.json
+  cat claims.json | ${jq}
+  cat ../cmd/whiskeyTango/token.wt | python3 ./wt.py -ca ../cmd/whiskeyTango/trusted.jwk -verify  -challenge squeamishossifrage > claims.challenge
+  echo --- create challenge from python
+  cat claims.challenge
+  echo  -- prove python challenge from go
+  ../cmd/whiskeyTango/wt -kp ../cmd/whiskeyTango/robfielding.kp -prove $(cat claims.challenge)
+
 )

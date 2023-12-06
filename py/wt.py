@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # format automatically:
 #   pip3 install git+https://github.com/psf/black; black wt.py
 # install cryptography
@@ -11,6 +12,16 @@ import hashlib
 import math
 import calendar
 import datetime
+
+def wt_challenge(verified: any, challenge: str) -> str:
+    ep = verified["encryptPublic"]
+    n = int.from_bytes(base64.urlsafe_b64decode(ep["n"] + "=="), byteorder="big")
+    e = int.from_bytes(base64.urlsafe_b64decode(ep["e"] + "=="), byteorder="big")
+    v = int.from_bytes(challenge.encode('utf-8'), byteorder="big")
+    r = pow(v,e,n)
+    b = int(math.floor(math.log2(n)))
+    x = base64.urlsafe_b64encode(r.to_bytes(int(b/8+7)-1, byteorder="big"))
+    return str(x, 'utf-8').replace('=','')
 
 # The only plaintext in the token is the kid,
 # used to look up the key that encrypted it.
@@ -83,6 +94,7 @@ def main() -> int:
     parser = argparse.ArgumentParser("whiskeyTango auth tokens")
     parser.add_argument("-ca")
     parser.add_argument("-verify", action="store_true")
+    parser.add_argument("-challenge")
     args = parser.parse_args()
     if len(args.ca) > 0:
         # should only be ONE line from stdin
@@ -97,7 +109,11 @@ def main() -> int:
             trust = json.loads(f.read())
             wt_trust_init(trust)
         unixNow = calendar.timegm(datetime.datetime.utcnow().utctimetuple())
-        print(json.dumps(wt_verify(trust, token, unixNow)))
+        verified = wt_verify(trust, token, unixNow)
+        if args.challenge:
+            print(wt_challenge(verified,args.challenge))
+        else:
+            print(json.dumps(verified))
     return 0
 
 

@@ -45,7 +45,7 @@ echo -- challenge the owner of this token to prove ownership
 cat token.wt | ./wt -ca trusted.jwk -challenge squeamishossifrage > claims.challenge
 echo ---- Create a challenge to prove ownership of this token
 cat claims.challenge
-echo ---- Verify the proof by getting back the secret phrase
+echo ---- Verify the challenge
 ./wt -kp robfielding.kp -prove $(cat claims.challenge)
 echo
 )
