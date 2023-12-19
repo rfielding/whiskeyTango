@@ -21,15 +21,23 @@ go build -o wt main.go
 caName=https://rfielding.net/ca-1
 
 echo --- make ca key for signer for ${caName}
-./wt -ca signer.jwk -kid ${caName} -create -bits 1024
+./wt -ca signer.jwk -kid ${caName} -create -bits 2048
 
 echo --- trust signer ${caName}
 ./wt -ca signer.jwk -kid ${caName} -trust trusted.jwk
 cat trusted.jwk | $jq
 echo
 
+
+echo --- sign and verify token 2
+echo '{"emails":["danica.fielding@gmail.com"],"age":["adult"]}' > claims2.csr
+cat claims2.csr | ./wt -ca signer.jwk -kid ${caName} -sign -minutes 2 > token2.wt
+cat token2.wt | ./wt -ca trusted.jwk -verify
+echo
+
 echo --- make keypair for robfielding
-./wt -kp robfielding.kp -bits 1024
+./wt -kp robfielding.kp -bits 2048
+
 
 echo --- sign token
 echo '{"email":["rob.fielding@gmail.com","rrr00bb@yahoo.com"],"age":["adult"]}' > claims.csr

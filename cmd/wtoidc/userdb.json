@@ -1,0 +1,31 @@
+{
+  "clients": {
+    "app1": {
+      "client_secret": "1234"
+    },
+    "app2": {
+      "client_secret": "5678"
+    }
+  },
+  "users": {
+    "rob.fielding@gmail.com": {
+      "email": ["rob.fielding@gmail.com"],
+      "role": ["user","admin"],
+      "client": ["app1","app2"],
+      "_passwordMD5": "a3062ae4b805db36e36ee23de8fbe489"
+    },
+    "jp.fielding@gmail.com": {
+      "email": ["jp.fielding@gmail.com"],
+      "role": ["user","admin"],
+      "client": ["app2"],
+      "_passwordMD5": "fe82cb74cf66b7d12a32ba180967aeb2"
+    },
+    "danica.fielding@gmail.com": {
+      "email": ["danica.fielding@gmail.com"],
+      "client": ["app1"],
+      "role": ["user"],
+      "dietary": ["vegan"],
+      "_passwordMD5": "d2be8a925f5320f5a9ea119a9990a5e7"
+    }
+  }
+}

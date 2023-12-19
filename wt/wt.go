@@ -309,7 +309,14 @@ func CreateToken(
 	publicKey *rsa.PublicKey,
 	publicKeyName string,
 ) (string, error) {
-	task := fmt.Errorf("during CreateToken")
+	task := fmt.Errorf("during CreateToken with claims %T", claimsObject)
+
+	if claimsObject == nil {
+		return "", errors.Join(
+			task,
+			fmt.Errorf("claimsObject is nil"),
+		)
+	}
 	// We round-trip marshalling, so that the claimsObject can be any kind of json object we like as input
 	claimsMarshalled, err := json.Marshal(claimsObject)
 	if err != nil {
@@ -319,7 +326,7 @@ func CreateToken(
 			err,
 		)
 	}
-	var claims interface{}
+	var claims map[string]interface{}
 	err = json.Unmarshal(claimsMarshalled, &claims)
 	if err != nil {
 		return "", errors.Join(
@@ -328,25 +335,25 @@ func CreateToken(
 			err,
 		)
 	}
-	c, ok := claims.(map[string]interface{})
-	if !ok {
+	if claims == nil {
 		return "", errors.Join(
 			task,
-			fmt.Errorf("must pass in a map[string]interface{} at the top for claims"),
+			fmt.Errorf("we got a nil claims map for %s", claimsMarshalled),
 		)
 	}
 
 	// We can set exp, kid no matter what fields exist on claimsObject
-	c["exp"] = exp
-	c["kid"] = kid
+	claims["exp"] = exp
+	claims["kid"] = kid
+	delete(claims, "_passwordMD5")
 	if publicKey != nil {
 		encryptPublic := make(map[string]interface{})
 		encryptPublic["n"] = NumberEncoding.EncodeToString(publicKey.N.Bytes())
 		encryptPublic["e"] = NumberEncoding.EncodeToString(big.NewInt(int64(publicKey.E)).Bytes())
 		encryptPublic["name"] = publicKeyName
-		c["encryptPublic"] = encryptPublic
+		claims["encryptPublic"] = encryptPublic
 	}
-	j, err := json.Marshal(c)
+	j, err := json.Marshal(claims)
 	if err != nil {
 		return "", errors.Join(
 			task,
@@ -397,12 +404,20 @@ func CreateToken(
 	Sig := RSA(V, theKey.Dint, theKey.Nint)
 
 	// This token is kind of similar to a JWT in appearance.
-	return fmt.Sprintf(
-		"%s.%s.%s",
-		base64.RawURLEncoding.EncodeToString([]byte(kid)),
-		base64.RawURLEncoding.EncodeToString(E),
-		base64.RawURLEncoding.EncodeToString(Sig.Bytes()),
-	), nil
+	hdr := base64.RawURLEncoding.EncodeToString([]byte(kid))
+	payload := base64.RawURLEncoding.EncodeToString(E)
+	signature := base64.RawURLEncoding.EncodeToString(Sig.Bytes())
+	if len(signature) < 4 {
+		panic(
+			fmt.Sprintf(
+				"signature is too short, you probably passed in a trust.jwk rather than a signer.jwk\n V:%s\n D:%s\n N:%s\n",
+				V.String(),
+				theKey.Dint.String(),
+				theKey.Nint.String(),
+			),
+		)
+	}
+	return fmt.Sprintf("%s.%s.%s", hdr, payload, signature), nil
 }
 
 // Extract claims from token.
