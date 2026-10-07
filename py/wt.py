@@ -81,7 +81,8 @@ def wt_extract_claims(trust: any, token: str) -> str:
         # note that the key k is never reused
         nonce = ciphertextunderk[0:12]
         ciphertextonly = ciphertextunderk[12:]
-        aesgcm = AESGCM(k[0:32])
+        # SHA-256 XOR affects the low-order bytes of the big-endian witness.
+        aesgcm = AESGCM(k[-32:])
         plaintext = aesgcm.decrypt(nonce, ciphertextonly, None).decode("utf-8")
         return plaintext  # will be valid json map
     return "ERROR: no rsakey found for %s" % (kid)

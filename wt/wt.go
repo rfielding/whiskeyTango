@@ -382,8 +382,9 @@ func CreateToken(
 		)
 	}
 
+	// Use the low-order 256 bits: the big-endian integer XOR with HE affects these bytes.
 	// Generate the ciphertext E
-	E, err := Encrypt(k[0:32], j)
+	E, err := Encrypt(k[len(k)-32:], j)
 	if err != nil {
 		return "", errors.Join(
 			task,
@@ -482,7 +483,7 @@ func GetValidClaims(keys *JWKeys, now int64, token string) (map[string]interface
 	new(big.Int).Xor(V, HE).FillBytes(k)
 
 	// We now can decrypt claims
-	claims, err := Decrypt(k[0:32], ciphertextWithNonce)
+	claims, err := Decrypt(k[len(k)-32:], ciphertextWithNonce)
 	if err != nil {
 		return nil, errors.Join(
 			task,

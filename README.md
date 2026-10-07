@@ -17,6 +17,14 @@ This is a simplified web token format that has the property that you can't get a
 
 Encrypted JWTs involve a complex specification in JOSE, that just compounds the complexity problem associated with JWT hazards.  There are many situations where the CA has the signing key, and only clients allowed to decrypt the claims need to check the validity of those claims.  So, the public keys to verify a JWT can actually be secrets in that situation.
 
+## Compatibility: ciphertext-binding fix
+
+The AES key is the final 32 bytes (low-order 256 bits) of the big-endian witness, matching the bytes affected by the ciphertext hash. Earlier Go and Python implementations incorrectly selected the first 32 bytes, allowing a verifier to replace claims while reusing an existing signature.
+
+Upgrade Go issuers and both Go and Python verifiers together. Reissue tokens under a new `kid`; existing tokens are incompatible. Do not fall back to the old byte selection. This corrects the implementation discrepancy, rather than establishing a security proof for the custom construction.
+
+Run `go test ./...` and, with Python cryptography installed, `python3 -m unittest discover -s py -p "test_*.py"`.
+
 ## Prerequisites
 
 - Go 1.16 or higher
